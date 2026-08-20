@@ -633,6 +633,7 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
   const APP_PASSWORD = '993300';
@@ -641,22 +642,36 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
   let currentEditId = null;
   let rowSeq = 0;
 
+  /* ---------- Supabase setup ---------- */
+  // TODO: এখানে আপনার Supabase Project Settings > API থেকে পাওয়া URL ও anon key বসান
+  const SUPABASE_URL = 'https://ozuophzffdjhepybswxl.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_MnRcMTpUKo2-P1Q_sYYg0Q_TLL9RDjW';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   function fmt(n){
     n = Number(n)||0;
     return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   }
   function todayISO(){ return new Date().toISOString().slice(0,10); }
 
-  /* ---------- storage ---------- */
+  /* ---------- storage (Supabase) ---------- */
   async function loadStatements(){
     try{
-      const r = await window.storage.get(DATA_KEY, false);
-      statements = r ? JSON.parse(r.value) : [];
-    }catch(e){ statements = []; }
+      const { data, error } = await sb
+        .from('app_data')
+        .select('value')
+        .eq('key', DATA_KEY)
+        .maybeSingle();
+      if(error) throw error;
+      statements = data ? data.value : [];
+    }catch(e){ console.error('load failed', e); statements = []; }
   }
   async function saveStatements(){
     try{
-      await window.storage.set(DATA_KEY, JSON.stringify(statements), false);
+      const { error } = await sb
+        .from('app_data')
+        .upsert({ key: DATA_KEY, value: statements, updated_at: new Date().toISOString() });
+      if(error) throw error;
     }catch(e){ console.error('save failed', e); }
   }
 
