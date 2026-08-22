@@ -441,8 +441,6 @@ body { background: var(--background); color: var(--main-text); }
   .stmt-more-delete{width:100%;border:0;background:transparent;color:#B42318;text-align:left;padding:8px 10px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
   .stmt-more-delete:hover{background:#FFF3F1;color:#9E1C16;}
   .approval-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:28px;padding-top:6px;}
-  .statement-total-box{width:50%;margin-left:auto;border:1px solid var(--line);border-radius:5px;background:#fff;box-sizing:border-box;}
-  .statement-approval-grid{margin-top:24px;padding:0 16px 14px;}
   .approval-line{height:1px;background:#334155;margin-bottom:7px;}
   .approval-label{text-align:center;font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px;font-weight:600;}
   @media(max-width:520px){.stmt-card{gap:8px}.stmt-more-wrap{flex-basis:30px}.stmt-more-btn{width:29px;height:29px}.approval-grid{gap:18px;}}
@@ -492,6 +490,44 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
 @media(max-width:600px){.lock-logo{width:118px !important;height:118px !important;}}
 </style>
 
+
+<style id="clean-three-dot-menu-css">
+#monthMenu .clean-nav,
+#monthMenu .menu-item-row{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+#monthMenu .clean-icon{
+  display:inline-flex;
+  width:20px;
+  min-width:20px;
+  align-items:center;
+  justify-content:center;
+  color:#075C42;
+  font-size:14px;
+}
+#monthMenu .clean-logout,
+#monthMenu .clean-logout .clean-icon{
+  color:#B42318 !important;
+}
+#monthMenu .clean-logout:hover{
+  background:#FEF3F2 !important;
+}
+#monthMenu .menu-divider{
+  margin:6px 2px;
+}
+</style>
+
+
+<style id="a4-print-layout">
+@page { size: A4 portrait; margin: 12mm; }
+@media print {
+  html, body { width: 210mm; min-height: 297mm; }
+  .stmt-card { page-break-inside: avoid; }
+  .approval-grid { margin-top: 18px !important; padding-top: 0 !important; }
+}
+</style>
 </head>
 <body>
 
@@ -543,10 +579,19 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
           <span></span><span></span><span></span>
         </button>
         <div class="month-menu" id="monthMenu">
-          <button class="menu-item-row" id="monthlyToggle">
-            <span>Monthly Statement</span>
+          <button class="menu-action clean-nav" type="button">
+            <span class="clean-icon">⌂</span><span>Dashboard</span>
+          </button>
+
+          <button class="menu-action clean-nav" type="button">
+            <span class="clean-icon">▣</span><span>Accounts</span>
+          </button>
+
+          <button class="menu-item-row" id="monthlyToggle" type="button">
+            <span><span class="clean-icon">▤</span>Statement</span>
             <span class="chevron"></span>
           </button>
+
           <div class="month-submenu" id="monthSubmenu">
             <div class="month-submenu-inner">
               <button class="month-opt" data-month="0">January</button>
@@ -564,16 +609,31 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
               <button class="month-opt all-months" data-month="all">All Months</button>
             </div>
           </div>
-          <button class="menu-item-row" id="dailyToggle">
-            <span>Daily Statement</span>
+
+          <button class="menu-item-row" id="dailyToggle" type="button">
+            <span><span class="clean-icon">◷</span>Daily Statement</span>
             <span class="chevron"></span>
           </button>
+
           <div class="daily-submenu" id="dailySubmenu">
             <label for="menuDailyDate">Select Date</label>
             <input type="date" id="menuDailyDate">
             <button class="daily-apply" id="menuDailyApply">View Daily Statement</button>
           </div>
+
           <div class="menu-divider"></div>
+
+          <button class="menu-action clean-nav" type="button">
+            <span class="clean-icon">⚙</span><span>Settings</span>
+          </button>
+
+          <button class="menu-action clean-nav clean-logout" type="button"
+                  onclick="var b=document.getElementById('lockOutBtn'); if(b) b.click();">
+            <span class="clean-icon">↪</span><span>Log Out</span>
+          </button>
+
+          <div class="menu-divider"></div>
+
           <button class="menu-action" id="menuPrintBtn">Print</button>
           <button class="menu-action" id="menuExportBtn">Export PDF</button>
         </div>
@@ -1274,40 +1334,59 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
       margin:{left:12, right:12}
     });
 
+    // Summary is kept completely separate from the signature area.
+    // This prevents Prepared By / Received By from ever appearing inside
+    // Total Expenses or Advance Received rows.
     y = doc.lastAutoTable.finalY + 8;
-    const boxW = 80;
-    const boxX = pw-12-boxW;
-    doc.setDrawColor(...BRAND.soft);
-    doc.roundedRect(boxX, y, boxW, 26, 1.5, 1.5);
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...BRAND.ink);
-    doc.text('Total Expenses', boxX+5, y+7);
-    doc.text(money(t.spent), boxX+boxW-5, y+7, {align:'right'});
-    doc.text('Advance Received', boxX+5, y+13.5);
-    doc.text(money(t.advance), boxX+boxW-5, y+13.5, {align:'right'});
-    doc.setDrawColor(...BRAND.soft);
-    doc.line(boxX+5, y+16.5, boxX+boxW-5, y+16.5);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(10.5);
-    doc.setTextColor(...(t.due>=0?BRAND.mid:BRAND.red));
-    doc.text(t.due>=0?'Cash to Return':'Additional (Company Pays)', boxX+5, y+22.5, {maxWidth:boxW-30});
-    doc.text(money(Math.abs(t.due)), boxX+boxW-5, y+22.5, {align:'right'});
-    doc.setTextColor(...BRAND.ink);
-
-    y += 40;
     const ph = doc.internal.pageSize.getHeight();
-    if(y > ph-40) y = ph-40;
-    const sigW = (pw-24-16)/2;
-    doc.setDrawColor(...BRAND.ink);
-    doc.setLineWidth(0.2);
-    doc.line(12, y, 12+sigW, y);
-    doc.line(12+sigW+16, y, 12+sigW+16+sigW, y);
+    const summaryH = 31;
+    const sigGap = 10;
+    const sigAreaH = 24;
+    if(y + summaryH + sigGap + sigAreaH > ph - 18){
+      doc.addPage('a4','p');
+      y = 18;
+    }
+
+    const sumX = 12, sumW = pw - 24;
+    doc.setDrawColor(...BRAND.soft);
+    doc.setLineWidth(0.15);
+    doc.setFillColor(250,250,247);
+    doc.roundedRect(sumX, y, sumW, summaryH, 1.5, 1.5, 'FD');
     doc.setFont('helvetica','normal');
     doc.setFontSize(8.5);
     doc.setTextColor(...BRAND.soft);
-    doc.text('Prepared By', 12, y+5);
-    doc.text('Received By', 12+sigW+16, y+5);
+    doc.text('TOTAL EXPENSES', sumX+6, y+8);
+    doc.text('ADVANCE RECEIVED', sumX+6, y+16);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...BRAND.ink);
+    doc.text(money(t.spent) + ' BDT', sumX+sumW-6, y+8, {align:'right'});
+    doc.text(money(t.advance) + ' BDT', sumX+sumW-6, y+16, {align:'right'});
+    doc.setDrawColor(...BRAND.soft);
+    doc.line(sumX+5, y+19.5, sumX+sumW-5, y+19.5);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(...(t.due>=0?BRAND.mid:BRAND.red));
+    doc.text(t.due>=0?'CASH TO RETURN':'ADDITIONAL (COMPANY PAYS)', sumX+6, y+26);
+    doc.text(money(Math.abs(t.due)) + ' BDT', sumX+sumW-6, y+26, {align:'right'});
+    doc.setTextColor(...BRAND.ink);
+
+    // Signature lines are explicitly placed BELOW the complete summary box.
+    y += summaryH + sigGap;
+    const sigW = (pw-24-20)/2;
+    const sig2X = 12 + sigW + 20;
+    doc.setDrawColor(...BRAND.ink);
+    doc.setLineWidth(0.25);
+    doc.line(12, y, 12+sigW, y);
+    doc.line(sig2X, y, sig2X+sigW, y);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...BRAND.soft);
+    doc.text('Prepared By', 12 + sigW/2, y+5, {align:'center'});
+    doc.text('Received By', sig2X + sigW/2, y+5, {align:'center'});
+    doc.setFontSize(7.5);
+    doc.text('Signature / Name', 12 + sigW/2, y+10, {align:'center'});
+    doc.text('Signature / Name', sig2X + sigW/2, y+10, {align:'center'});
 
     drawFooter(doc);
     const fname = 'PAIKARIGHOR_Statement_' + (s.employee||'Employee').replace(/[^\w]+/g,'_') + '_' + (s.stmtDate||'') + '.pdf';
@@ -1514,14 +1593,14 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
         </thead>
         <tbody>${rows || '<tr><td colspan="5" style="padding:14px 16px;color:var(--ink-soft);">No expenses added.</td></tr>'}</tbody>
       </table>
-      <div class="statement-total-box" style="padding:14px 16px;">
+      <div style="padding:14px 16px;">
         <div class="tot-line"><span class="lab">Total Expenses</span><span class="val">${fmt(spent)}</span></div>
         <div class="tot-line"><span class="lab">Advance Received</span><span class="val">${fmt(advance)}</span></div>
         <div class="tot-line strong"><span class="lab">${due>=0?'Cash to Return':'Additional (Company Pays)'}</span><span class="val ${due>=0?'ok':'owe'}">${fmt(Math.abs(due))}</span></div>
-      </div>
-      <div class="approval-grid statement-approval-grid">
-        <div><div class="approval-line"></div><div class="approval-label">Prepared By</div></div>
-        <div><div class="approval-line"></div><div class="approval-label">Received By</div></div>
+        <div class="approval-grid">
+          <div><div class="approval-line"></div><div class="approval-label">Prepared By</div></div>
+          <div><div class="approval-line"></div><div class="approval-label">Received By</div></div>
+        </div>
       </div>
     `;
     viewOverlay.classList.add('show');
