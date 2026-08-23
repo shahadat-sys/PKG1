@@ -727,8 +727,8 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
       <div class="dashboard-quickbar">
         <button class="quick-btn" data-dash-nav="income"><span class="qi">＋</span>Add Income</button>
         <button class="quick-btn" data-dash-nav="expense"><span class="qi">−</span>Add Expense</button>
-        <button class="quick-btn" data-dash-nav="projects"><span class="qi">▣</span>New Project</button>
-        <button class="quick-btn" data-dash-nav="transactions"><span class="qi">☷</span>Project List</button>
+        <button class="quick-btn" id="dashNewProjectBtn" data-dash-nav="projects"><span class="qi">▣</span>New Project</button>
+        <button class="quick-btn" id="dashProjectListBtn" data-dash-nav="projects"><span class="qi">☷</span>Project List</button>
         <button class="quick-btn" data-dash-nav="daily"><span class="qi">▦</span>Daily Statement</button>
         <button class="quick-btn" data-dash-nav="monthly"><span class="qi">▦</span>Monthly Statement</button>
         <button class="quick-btn" id="dashMoreBtn"><span class="qi">•••</span>More</button>
@@ -1829,80 +1829,43 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
   initLock();
 })();
 </script>
+
+
+<!-- Dashboard functional layer -->
+<style id="dashboard-functional-fix">
+#app.dashboard-mode{background:#f6f8fb!important}.dashboard-modal{position:fixed;inset:0;background:rgba(8,18,32,.42);display:none;align-items:center;justify-content:center;z-index:20000;padding:18px;box-sizing:border-box}.dashboard-modal.show{display:flex}.dm-card{width:min(720px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 28px 70px rgba(0,0,0,.28)}.dm-head{padding:16px 20px;border-bottom:1px solid #edf0f4;display:flex;align-items:center;justify-content:space-between}.dm-head h3{margin:0;font-size:18px;color:#152235}.dm-close{border:0;background:#eef2f6;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px}.dm-body{padding:18px 20px}.dm-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dm-field label{display:block;font-size:11px;font-weight:700;color:#526075;margin-bottom:6px}.dm-field input,.dm-field select{width:100%;box-sizing:border-box;height:38px;border:1px solid #dfe6ee;border-radius:8px;padding:0 10px;outline:none}.dm-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.dm-btn{border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer}.dm-btn.primary{background:#16a34a;color:#fff}.dm-btn.secondary{background:#eef2f6;color:#26364b}.dm-table{width:100%;border-collapse:collapse;font-size:13px}.dm-table th,.dm-table td{padding:10px;border-bottom:1px solid #edf0f4;text-align:left}.dm-note{padding:12px;border-radius:8px;background:#f6f8fb;color:#536174;font-size:13px}.dash-module-list{display:grid;gap:10px}.dash-module-item{border:1px solid #e6ebf1;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}.dash-module-item b{font-size:14px}.dash-module-item small{color:#64748b;display:block;margin-top:3px}.module-action{border:0;background:#eef7f1;color:#16803c;border-radius:7px;padding:7px 10px;font-weight:700;cursor:pointer}
+</style>
+<div class="dashboard-modal" id="dashModal"><div class="dm-card"><div class="dm-head"><h3 id="dmTitle">Dashboard</h3><button class="dm-close" id="dmClose">×</button></div><div class="dm-body" id="dmBody"></div></div></div>
+<script id="dashboard-functional-js">
+(function(){
+ const app=document.getElementById('app'), modal=document.getElementById('dashModal'), title=document.getElementById('dmTitle'), body=document.getElementById('dmBody'), drawer=document.getElementById('dashMoreDrawer');
+ if(!app||!modal) return;
+ const esc=t=>String(t).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const getProjects=()=>JSON.parse(localStorage.getItem('pg_projects')||'[{"name":"Factory Maintenance","budget":"100000","manager":"Admin"},{"name":"Sanitary Work","budget":"80000","manager":"Admin"},{"name":"Office Renovation","budget":"150000","manager":"Admin"}]');
+ const saveProjects=x=>localStorage.setItem('pg_projects',JSON.stringify(x));
+ function closeModal(){modal.classList.remove('show');body.innerHTML='';}
+ document.getElementById('dmClose').onclick=closeModal; modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+ function openModal(t,html){title.textContent=t;body.innerHTML=html;modal.classList.add('show');}
+ function showDashboard(){app.classList.add('dashboard-mode'); document.querySelectorAll('.dash-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.dashNav==='dashboard')); window.scrollTo(0,0); if(drawer)drawer.classList.remove('show');}
+ function showStatements(){app.classList.remove('dashboard-mode'); if(drawer)drawer.classList.remove('show');}
+ function projectList(){const rows=getProjects().map((p,i)=>`<tr><td><b>${esc(p.name)}</b></td><td>৳ ${Number(p.budget||0).toLocaleString()}</td><td>${esc(p.manager||'')}</td><td><button class="module-action" data-edit="${i}">Edit</button></td></tr>`).join(''); openModal('Project List',`<div class="dm-actions" style="margin-top:0;justify-content:flex-start"><button class="dm-btn primary" id="dmAddProject">+ New Project</button></div><table class="dm-table"><thead><tr><th>Project</th><th>Budget</th><th>Manager</th><th></th></tr></thead><tbody>${rows}</tbody></table>`); document.getElementById('dmAddProject').onclick=newProject; body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>newProject(Number(b.dataset.edit)));}
+ function newProject(editIndex){const ps=getProjects(), p=editIndex==null?{name:'',budget:'',manager:''}:ps[editIndex]; openModal(editIndex==null?'New Project':'Edit Project',`<div class="dm-grid"><div class="dm-field"><label>Project Name</label><input id="pName" value="${esc(p.name)}" placeholder="Factory Project"></div><div class="dm-field"><label>Budget</label><input id="pBudget" type="number" value="${esc(p.budget)}" placeholder="100000"></div><div class="dm-field"><label>Manager</label><input id="pManager" value="${esc(p.manager)}" placeholder="Admin"></div><div class="dm-field"><label>Status</label><select id="pStatus"><option>Active</option><option>Completed</option><option>On Hold</option></select></div></div><div class="dm-actions"><button class="dm-btn secondary" id="pCancel">Cancel</button><button class="dm-btn primary" id="pSave">Save Project</button></div>`); document.getElementById('pCancel').onclick=projectList; document.getElementById('pSave').onclick=()=>{const name=document.getElementById('pName').value.trim(),budget=document.getElementById('pBudget').value,manager=document.getElementById('pManager').value.trim(); if(!name){alert('Project name is required');return;} const obj={name,budget,manager}; if(editIndex==null)ps.push(obj);else ps[editIndex]=obj; saveProjects(ps); projectList();};}
+ function incomeModal(){openModal('Add Income',`<div class="dm-grid"><div class="dm-field"><label>Description</label><input id="incDesc" placeholder="Cash Received"></div><div class="dm-field"><label>Amount</label><input id="incAmt" type="number" placeholder="20000"></div><div class="dm-field"><label>Project</label><select id="incProject">${getProjects().map(p=>`<option>${esc(p.name)}</option>`).join('')}</select></div><div class="dm-field"><label>Method</label><select><option>Cash</option><option>Bank</option></select></div></div><div class="dm-actions"><button class="dm-btn secondary" id="iCancel">Cancel</button><button class="dm-btn primary" id="iSave">Save Income</button></div>`); document.getElementById('iCancel').onclick=closeModal; document.getElementById('iSave').onclick=()=>{const d=document.getElementById('incDesc').value.trim(),a=document.getElementById('incAmt').value;if(!d||!a){alert('Description and amount are required');return;} const arr=JSON.parse(localStorage.getItem('pg_income')||'[]');arr.unshift({d,a,date:new Date().toISOString()});localStorage.setItem('pg_income',JSON.stringify(arr));closeModal();alert('Income saved successfully');};}
+ function generic(name){openModal(name,`<div class="dm-note">${esc(name)} module is now open from the dashboard.</div><div class="dash-module-list" style="margin-top:14px"><div class="dash-module-item"><div><b>${esc(name)}</b><small>Manage and access this dashboard section.</small></div><button class="module-action" id="modAction">Open</button></div></div>`);document.getElementById('modAction').onclick=()=>alert(name+' module opened.');}
+ function go(a){if(a==='dashboard')return showDashboard(); if(a==='projects')return projectList(); if(a==='income')return incomeModal(); if(a==='expense'){showStatements();setTimeout(()=>document.getElementById('newStmtBtn')?.click(),80);return;} if(['transactions','daily','monthly','12month'].includes(a)){showStatements();setTimeout(()=>{if(a==='daily')document.getElementById('dailyModeBtn')?.click(); else if(a==='monthly')document.getElementById('monthlyModeBtn')?.click(); else if(a==='12month')document.querySelector('#monthMenu .month-opt[data-month="all"]')?.click();},50);return;} generic(({categories:'Categories',reports:'Reports',import:'Export / Import',settings:'Settings',backup:'Backup',users:'Users',activity:'Activity Log',help:'Help & Support'})[a]||a);}
+ document.querySelectorAll('[data-dash-nav]').forEach(btn=>btn.addEventListener('click',()=>{ if(btn.id==='dashNewProjectBtn') newProject(); else go(btn.dataset.dashNav); }));
+ document.getElementById('dashMoreBtn')?.addEventListener('click',e=>{e.stopPropagation();drawer?.classList.toggle('show')}); drawer?.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.dashNav)go(b.dataset.dashNav);else if(b.dataset.dashAction==='print'){showStatements();setTimeout(()=>document.getElementById('printBtn')?.click(),100)}else if(b.dataset.dashAction==='export'){showStatements();setTimeout(()=>document.getElementById('exportBtn')?.click(),100)}});
+ document.addEventListener('click',e=>{if(drawer&&!drawer.contains(e.target)&&!e.target.closest('#dashMoreBtn'))drawer.classList.remove('show')});
+ const old=document.querySelector('#monthMenu .clean-nav'); if(old)old.addEventListener('click',e=>{e.preventDefault();showDashboard()});
+ document.getElementById('dashProjectListBtn')?.addEventListener('click',e=>{e.stopImmediatePropagation();projectList()});
+ // Always start on the new dashboard and avoid flashing the old page.
+ showDashboard();
+})();
+</script>
 </body>
 </html>
 
 
-<script id="dashboard-reference-js">
-(function(){
-  function bootDashboard(){
-    const app=document.getElementById('app');
-    const drawer=document.getElementById('dashMoreDrawer');
-    const toast=document.getElementById('dashToast');
-    if(!app) return;
-
-    function toastMsg(msg){
-      if(!toast) return;
-      toast.textContent=msg; toast.classList.add('show');
-      clearTimeout(window.__dashToastTimer);
-      window.__dashToastTimer=setTimeout(()=>toast.classList.remove('show'),1800);
-    }
-    function showDashboard(){
-      app.classList.add('dashboard-mode');
-      document.querySelectorAll('.dash-nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.dashNav==='dashboard'));
-      if(drawer) drawer.classList.remove('show');
-      window.scrollTo({top:0,behavior:'smooth'});
-    }
-    function showStatements(){
-      app.classList.remove('dashboard-mode');
-      if(drawer) drawer.classList.remove('show');
-      window.scrollTo({top:0,behavior:'smooth'});
-    }
-    function go(action){
-      if(action==='dashboard'){showDashboard();return;}
-      if(action==='transactions' || action==='daily' || action==='monthly' || action==='12month'){
-        showStatements();
-        if(action==='daily') document.getElementById('dailyModeBtn')?.click();
-        else if(action==='monthly') document.getElementById('monthlyModeBtn')?.click();
-        else if(action==='12month'){
-          const btn=document.querySelector('#monthMenu .month-opt[data-month="all"]');
-          btn?.click();
-        }
-        return;
-      }
-      if(action==='expense'){
-        showStatements();
-        setTimeout(()=>document.getElementById('newStmtBtn')?.click(),50);
-        return;
-      }
-      if(action==='income'){
-        toastMsg('Income entry panel is ready to be connected to your income ledger.');
-        return;
-      }
-      const names={projects:'Projects',categories:'Categories',reports:'Reports',import:'Export / Import',settings:'Settings',backup:'Backup',users:'Users',activity:'Activity Log',help:'Help & Support'};
-      toastMsg((names[action]||'This module')+' selected.');
-    }
-
-    document.querySelectorAll('[data-dash-nav]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();go(btn.dataset.dashNav);}));
-    document.getElementById('dashMoreBtn')?.addEventListener('click',e=>{e.stopPropagation();drawer?.classList.toggle('show');});
-    drawer?.addEventListener('click',e=>{
-      const b=e.target.closest('button'); if(!b) return;
-      if(b.dataset.dashNav) go(b.dataset.dashNav);
-      else if(b.dataset.dashAction==='print'){showStatements();setTimeout(()=>document.getElementById('printBtn')?.click(),80);}
-      else if(b.dataset.dashAction==='export'){showStatements();setTimeout(()=>document.getElementById('exportBtn')?.click(),80);}
-    });
-    document.addEventListener('click',e=>{ if(drawer && !drawer.contains(e.target) && !e.target.closest('#dashMoreBtn')) drawer.classList.remove('show'); });
-
-    // Make the existing statement page's Dashboard menu item return to this dashboard.
-    const oldDashboardMenu=document.querySelector('#monthMenu .clean-nav');
-    if(oldDashboardMenu) oldDashboardMenu.addEventListener('click',e=>{e.preventDefault();showDashboard();});
-
-    // Existing + New Statement remains the working expense form; dashboard quick actions can reach it.
-    document.querySelector('.dashboard-title p')?.setAttribute('title','PAIKARIGHOR Accounts Dashboard');
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bootDashboard); else bootDashboard();
-})();
-</script>
 
 <!-- MENU FALLBACK: keeps the three-dot menu functional even if another optional script fails -->
 <style>
