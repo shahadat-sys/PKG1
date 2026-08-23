@@ -1862,6 +1862,169 @@ button:hover,.tb-btn:hover,.icon-btn:hover,.lock-btn:hover{box-shadow:0 0 0 3px 
  showDashboard();
 })();
 </script>
+<script id="project-management-v3">
+(function(){
+  const modal=document.getElementById('dashModal'), title=document.getElementById('dmTitle'), body=document.getElementById('dmBody');
+  if(!modal||!title||!body) return;
+  const esc=t=>String(t??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const money=n=>'৳ '+Number(n||0).toLocaleString('en-IN');
+  const today=()=>new Date().toISOString().slice(0,10);
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+  function load(){
+    let a=[]; try{a=JSON.parse(localStorage.getItem('pg_projects')||'[]')}catch(e){a=[]}
+    if(!Array.isArray(a)) a=[];
+    let changed=false;
+    a=a.map(p=>{
+      p=p||{};
+      if(!Array.isArray(p.expenses)){p.expenses=[];changed=true}
+      if(!Array.isArray(p.receivedEntries)){
+        const old=Number(p.received||0);
+        p.receivedEntries=old>0?[{id:uid(),date:today(),amount:old,note:'Initial received amount'}]:[];
+        changed=true;
+      }
+      if(p.status==null){p.status='Active';changed=true}
+      if(p.budget==null){p.budget=0;changed=true}
+      return p;
+    });
+    if(!a.length){
+      a=[
+        {name:'Factory Maintenance',budget:100000,manager:'Admin',status:'Active',receivedEntries:[],expenses:[]},
+        {name:'Sanitary Work',budget:80000,manager:'Admin',status:'Active',receivedEntries:[],expenses:[]},
+        {name:'Office Renovation',budget:150000,manager:'Admin',status:'Active',receivedEntries:[],expenses:[]}
+      ]; changed=true;
+    }
+    if(changed) save(a);
+    return a;
+  }
+  function save(a){localStorage.setItem('pg_projects',JSON.stringify(a));}
+  function open(t,h){title.textContent=t;body.innerHTML=h;modal.classList.add('show');}
+  function receivedTotal(p){return (p.receivedEntries||[]).reduce((s,e)=>s+Number(e.amount||0),0)}
+  function spent(p){return (p.expenses||[]).reduce((s,e)=>s+Number(e.amount||0),0)}
+  function available(p){return Math.max(0,receivedTotal(p)-spent(p))}
+  function budgetRemaining(p){return Number(p.budget||0)-spent(p)}
+  function pctSpent(p){return Number(p.budget||0)>0?Math.min(100,spent(p)/Number(p.budget)*100):0}
+
+  window.pgProjectList=function(){
+    const ps=load();
+    const rows=ps.map((p,i)=>{
+      const rec=receivedTotal(p), sp=spent(p), bal=available(p), pct=pctSpent(p);
+      return `<tr>
+        <td><b>${esc(p.name)}</b><div style="font-size:11px;color:#7a8699">${esc(p.manager||'')} · ${esc(p.status||'Active')}</div></td>
+        <td>${money(p.budget)}</td><td style="color:#0e9e52;font-weight:700">${money(rec)}</td>
+        <td style="color:#e53935;font-weight:700">${money(sp)}</td><td style="color:#0e9e52;font-weight:700">${money(bal)}</td>
+        <td><div style="display:flex;align-items:center;gap:7px"><div style="width:70px;height:6px;background:#e8edf2;border-radius:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#14a75a"></div></div><small>${pct.toFixed(1)}%</small></div></td>
+        <td><button class="module-action" data-pdetail="${i}">Overview</button></td>
+      </tr>`;
+    }).join('');
+    open('Project Overview',`
+      <div class="dm-note" style="margin-bottom:12px"><b>Project-wise money control:</b> প্রতিটি project-এর জন্য কত টাকা received হয়েছে এবং কোন purpose-এ কত expense হয়েছে তা আলাদা entry হবে। Expense save করলে <b>Remaining Balance = Total Received − Total Expense</b> অটোমেটিক কমে যাবে।</div>
+      <div class="dm-actions" style="margin-top:0;justify-content:flex-start"><button class="dm-btn primary" id="pgNewProject">+ New Project</button></div>
+      <div style="overflow:auto"><table class="dm-table"><thead><tr><th>Project</th><th>Budget</th><th>Total Received</th><th>Total Expense</th><th>Available Balance</th><th>Expense %</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="7">No projects yet.</td></tr>'}</tbody></table></div>`);
+    document.getElementById('pgNewProject').onclick=()=>window.pgNewProject();
+    body.querySelectorAll('[data-pdetail]').forEach(b=>b.onclick=()=>window.pgProjectDetail(Number(b.dataset.pdetail)));
+  };
+
+  window.pgNewProject=function(index){
+    const ps=load(), p=index==null?{name:'',budget:'',manager:'',status:'Active',receivedEntries:[],expenses:[]}:ps[index];
+    open(index==null?'New Project':'Edit Project',`<div class="dm-grid">
+      <div class="dm-field"><label>Project Name</label><input id="pgName" value="${esc(p.name)}" placeholder="Factory Maintenance"></div>
+      <div class="dm-field"><label>Total Project Budget (optional)</label><input id="pgBudget" type="number" min="0" value="${esc(p.budget)}" placeholder="100000"></div>
+      <div class="dm-field"><label>Manager</label><input id="pgManager" value="${esc(p.manager)}" placeholder="Admin"></div>
+      <div class="dm-field"><label>Status</label><select id="pgStatus"><option ${p.status==='Active'?'selected':''}>Active</option><option ${p.status==='Completed'?'selected':''}>Completed</option><option ${p.status==='On Hold'?'selected':''}>On Hold</option></select></div>
+    </div><div class="dm-note">Project create করার সময় received amount দিতে হবে না। Project তৈরি করার পরে <b>Add Received</b> দিয়ে এক বা একাধিক received entry যোগ করবেন।</div>
+    <div class="dm-actions"><button class="dm-btn secondary" id="pgCancel">Cancel</button><button class="dm-btn primary" id="pgSave">Save Project</button></div>`);
+    document.getElementById('pgCancel').onclick=window.pgProjectList;
+    document.getElementById('pgSave').onclick=()=>{
+      const name=document.getElementById('pgName').value.trim();
+      if(!name){alert('Project name is required');return;}
+      p.name=name;p.budget=Number(document.getElementById('pgBudget').value||0);p.manager=document.getElementById('pgManager').value.trim();p.status=document.getElementById('pgStatus').value;
+      if(!Array.isArray(p.receivedEntries))p.receivedEntries=[];if(!Array.isArray(p.expenses))p.expenses=[];
+      if(index==null)ps.push(p);else ps[index]=p;save(ps);window.pgProjectList();
+    };
+  };
+
+  window.pgProjectDetail=function(index){
+    const ps=load(), p=ps[index]; if(!p)return;
+    const rec=receivedTotal(p), sp=spent(p), bal=available(p), br=budgetRemaining(p), pct=pctSpent(p);
+    const receivedRows=(p.receivedEntries||[]).map((e,j)=>`<tr><td>${esc(e.date||'')}</td><td style="color:#0e9e52;font-weight:700">+ ${money(e.amount)}</td><td>${esc(e.note||'Received')}</td><td><button class="module-action" data-del-rec="${j}">Delete</button></td></tr>`).join('');
+    const expenseRows=(p.expenses||[]).map((e,j)=>`<tr><td>${esc(e.date||'')}</td><td><b>${esc(e.description)}</b></td><td>${esc(e.category||'General')}</td><td>${esc(e.method||'Cash')}</td><td style="color:#e53935;font-weight:700">− ${money(e.amount)}</td><td><button class="module-action" data-del-exp="${j}">Delete</button></td></tr>`).join('');
+    open(p.name+' — Project Overview',`
+      <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:14px">
+        <div class="dash-kpi"><small>Total Budget</small><b>${money(p.budget)}</b></div>
+        <div class="dash-kpi"><small>Total Received</small><b style="color:#0e9e52">${money(rec)}</b></div>
+        <div class="dash-kpi"><small>Total Expense</small><b style="color:#e53935">${money(sp)}</b></div>
+        <div class="dash-kpi"><small>Available Balance</small><b style="color:#0e9e52">${money(bal)}</b></div>
+        <div class="dash-kpi"><small>Budget Left</small><b>${money(br)}</b></div>
+      </div>
+      <div class="dm-note" style="margin-bottom:12px"><b>Auto calculation:</b> Total Received ${money(rec)} − Total Expense ${money(sp)} = <b style="color:#0e9e52">Available ${money(bal)}</b>. Expense cannot exceed the available received balance.</div>
+      <div class="dm-actions" style="justify-content:flex-start;flex-wrap:wrap"><button class="dm-btn primary" id="pgAddReceived">+ Add Received</button><button class="dm-btn primary" id="pgAddExpense">− Add Expense</button><button class="dm-btn secondary" id="pgEdit">Edit Project</button><button class="dm-btn secondary" id="pgBack">← Project Overview</button></div>
+      <div style="margin-top:16px"><h4 style="margin:0 0 8px">Received Entries</h4><div style="overflow:auto"><table class="dm-table"><thead><tr><th>Date</th><th>Amount</th><th>Purpose / Note</th><th></th></tr></thead><tbody>${receivedRows||'<tr><td colspan="4" style="text-align:center;color:#8a95a6">No received entry yet.</td></tr>'}</tbody></table></div></div>
+      <div style="margin-top:18px"><h4 style="margin:0 0 8px">Project Expenses</h4><div style="overflow:auto"><table class="dm-table"><thead><tr><th>Date</th><th>Purpose / Description</th><th>Category</th><th>Method</th><th>Amount</th><th></th></tr></thead><tbody>${expenseRows||'<tr><td colspan="6" style="text-align:center;color:#8a95a6">No expense added for this project yet.</td></tr>'}</tbody></table></div></div>
+      <div class="dm-note" style="margin-top:14px"><b>Expense Progress:</b> ${pct.toFixed(1)}% of project budget used.</div>`);
+    document.getElementById('pgBack').onclick=window.pgProjectList;
+    document.getElementById('pgEdit').onclick=()=>window.pgNewProject(index);
+    document.getElementById('pgAddReceived').onclick=()=>window.pgAddReceived(index);
+    document.getElementById('pgAddExpense').onclick=()=>window.pgAddExpense(index);
+    body.querySelectorAll('[data-del-rec]').forEach(b=>b.onclick=()=>{
+      const j=Number(b.dataset.delRec); if(!confirm('Delete this received entry?'))return;
+      p.receivedEntries.splice(j,1);save(ps);window.pgProjectDetail(index);
+    });
+    body.querySelectorAll('[data-del-exp]').forEach(b=>b.onclick=()=>{
+      const j=Number(b.dataset.delExp); if(!confirm('Delete this expense?'))return;
+      p.expenses.splice(j,1);save(ps);window.pgProjectDetail(index);
+    });
+  };
+
+  window.pgAddReceived=function(index){
+    const ps=load(), p=ps[index];
+    open('Add Received — '+p.name,`<div class="dm-note" style="margin-bottom:12px">এখানে project-এর জন্য পাওয়া টাকা entry করুন। একাধিকবার টাকা পেলে একাধিক received entry যোগ করতে পারবেন।</div><div class="dm-grid">
+      <div class="dm-field"><label>Received Amount</label><input id="pgRecAmt" type="number" min="0.01" placeholder="50000"></div>
+      <div class="dm-field"><label>Date</label><input id="pgRecDate" type="date" value="${today()}"></div>
+      <div class="dm-field" style="grid-column:1/-1"><label>Purpose / Note</label><input id="pgRecNote" placeholder="Advance received / Client payment / Project budget received"></div>
+    </div><div class="dm-actions"><button class="dm-btn secondary" id="pgRecCancel">Cancel</button><button class="dm-btn primary" id="pgRecSave">Save Received</button></div>`);
+    document.getElementById('pgRecCancel').onclick=()=>window.pgProjectDetail(index);
+    document.getElementById('pgRecSave').onclick=()=>{
+      const a=Number(document.getElementById('pgRecAmt').value||0), d=document.getElementById('pgRecDate').value||today(), n=document.getElementById('pgRecNote').value.trim();
+      if(a<=0){alert('Enter a valid received amount');return;}
+      p.receivedEntries.unshift({id:uid(),date:d,amount:a,note:n||'Received'});save(ps);window.pgProjectDetail(index);
+    };
+  };
+
+  window.pgAddExpense=function(index){
+    const ps=load(), p=ps[index], bal=available(p);
+    open('Add Expense — '+p.name,`<div class="dm-note" style="margin-bottom:12px"><b>Total Received:</b> ${money(receivedTotal(p))} · <b>Already Spent:</b> ${money(spent(p))} · <b>Available Balance:</b> <span style="color:#0e9e52;font-weight:700">${money(bal)}</span><br><small>Expense save করলে এই available balance অটোমেটিক কমে যাবে।</small></div><div class="dm-grid">
+      <div class="dm-field" style="grid-column:1/-1"><label>What was the money spent for?</label><input id="pgExpDesc" placeholder="Electrical Materials / Labour Bill / Transport / Food / Purchase..." autofocus></div>
+      <div class="dm-field"><label>Expense Amount</label><input id="pgExpAmt" type="number" min="0.01" max="${bal}" placeholder="15000"></div>
+      <div class="dm-field"><label>Category</label><select id="pgExpCat"><option>Materials</option><option>Labour</option><option>Transport</option><option>Equipment</option><option>Office</option><option>Food</option><option>Purchase</option><option>Other</option></select></div>
+      <div class="dm-field"><label>Payment Method</label><select id="pgExpMethod"><option>Cash</option><option>Bank</option><option>Mobile Banking</option><option>Cheque</option></select></div>
+      <div class="dm-field"><label>Date</label><input id="pgExpDate" type="date" value="${today()}"></div>
+    </div><div class="dm-actions"><button class="dm-btn secondary" id="pgExpCancel">Cancel</button><button class="dm-btn primary" id="pgExpSave">Save Expense</button></div>`);
+    document.getElementById('pgExpCancel').onclick=()=>window.pgProjectDetail(index);
+    document.getElementById('pgExpSave').onclick=()=>{
+      const d=document.getElementById('pgExpDesc').value.trim(), a=Number(document.getElementById('pgExpAmt').value||0), date=document.getElementById('pgExpDate').value||today();
+      if(!d||a<=0){alert('Purpose/Description and a valid amount are required');return;}
+      const freshBal=available(p);
+      if(a>freshBal){alert('এই project-এর available received balance-এর চেয়ে বেশি expense দেওয়া যাবে না. Available: '+money(freshBal));return;}
+      p.expenses.unshift({id:uid(),description:d,amount:a,category:document.getElementById('pgExpCat').value,method:document.getElementById('pgExpMethod').value,date:date});
+      save(ps);window.pgProjectDetail(index);
+    };
+  };
+
+  function renderDashProjects(){
+    const heads=[...document.querySelectorAll('.dash-panel-head h2')];
+    const h=heads.find(x=>x.textContent.trim().startsWith('Top Projects Overview')); if(!h)return;
+    const panel=h.closest('.dash-panel'), tb=panel&&panel.querySelector('tbody'); if(!tb)return;
+    const ps=load();
+    tb.innerHTML=ps.slice(0,5).map(p=>{const rec=receivedTotal(p),sp=spent(p),bal=available(p),pct=pctSpent(p);return `<tr><td><div class="project-name"><span class="project-icon">▥</span><span>${esc(p.name)}</span></div></td><td>${money(rec)}</td><td>${money(sp)}</td><td>${money(bal)}</td><td><div class="project-progress"><div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div><span>${pct.toFixed(1)}%</span></div></td></tr>`}).join('');
+  }
+  window.addEventListener('load',renderDashProjects); setTimeout(renderDashProjects,300);
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('[data-dash-nav="projects"],#dashNewProjectBtn,#dashProjectListBtn');
+    if(b){e.preventDefault();e.stopImmediatePropagation(); if(b.id==='dashNewProjectBtn')window.pgNewProject(); else window.pgProjectList();}
+  },true);
+})();
+</script>
 </body>
 </html>
 
