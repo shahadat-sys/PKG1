@@ -24,6 +24,15 @@
 @media(max-width:900px){.brandAddress{display:none}.avatar{width:40px;height:40px}.brandCopy b{font-size:18px}}
 </style>
 
+<style id="transactionEditStyles">
+.ledger .rowActions{display:flex;gap:6px;align-items:center}
+.ledger .rowEdit{padding:6px 9px;border-radius:8px;background:#fff;border:1px solid #dce4df;color:#12372A;font-weight:800;font-size:12px;cursor:pointer}
+.ledger .rowEdit:hover{background:#eef7f2;color:#087443;border-color:#b9d5c7}
+.ledger .rowEdit.expenseEdit{color:#b42318}
+.ledger .rowEdit.expenseEdit:hover{background:#fff3f1;border-color:#e8bbb6}
+@media(max-width:760px){.ledger .rowActions{flex-direction:column;align-items:flex-start}}
+</style>
+
 <style id="deleteConfirmStyles">
 .deleteConfirmOverlay{position:fixed;inset:0;background:rgba(8,20,15,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:110000}.deleteConfirmOverlay.show{display:flex}.deleteConfirmCard{width:min(420px,100%);background:#fff;border-radius:16px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);border:1px solid #dce4df}.deleteConfirmCard h3{margin:0 0 8px;color:#12372A}.deleteConfirmCard p{margin:0 0 18px;color:#68756f;line-height:1.5}.deleteConfirmActions{display:flex;justify-content:flex-end;gap:8px}.deleteConfirmActions .yes{background:#b42318;color:#fff}.deleteConfirmActions button{padding:10px 15px;border-radius:9px;border:1px solid #dce4df;background:#fff;font-weight:800;cursor:pointer}.deleteConfirmActions button:hover{filter:brightness(.98)}
 </style>
@@ -155,7 +164,7 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
 
 <div class="modal" id="projectModal"><div class="dialog"><div class="dialogHead"><h2 id="projectModalTitle">Create Project</h2><button class="btn" data-close="projectModal">Close</button></div><form id="projectForm"><div class="grid2"><div class="field"><label>Project Name</label><input id="projectName" required></div><div class="field"><label>Manager / Responsible Person</label><input id="projectManager"></div></div><div class="field"><label>Status</label><select id="projectStatus"><option>Active</option><option>On Hold</option><option>Completed</option></select></div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" type="button" data-close="projectModal">Cancel</button><button class="btn primary" type="submit">Save Project</button></div></form></div></div>
 
-<div class="modal" id="txModal"><div class="dialog"><div class="dialogHead"><h2 id="txTitle">Add Received</h2><button class="btn" data-close="txModal">Close</button></div><form id="txForm"><input type="hidden" id="txProjectId"><input type="hidden" id="txType"><div class="field"><label>Amount</label><input id="txAmount" type="number" min="0.01" step="0.01" required></div><div class="grid2"><div class="field"><label>Purpose / Note</label><input id="txPurpose" required></div><div class="field"><label>Date</label><input id="txDate" type="date" required></div></div><div class="grid2"><div class="field"><label>Category</label><input id="txCategory" placeholder="Materials / Labour / Other"></div><div class="field"><label>Payment Method</label><select id="txMethod"><option>Cash</option><option>Bank</option><option>Mobile Banking</option><option>Cheque</option></select></div></div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" type="button" data-close="txModal">Cancel</button><button class="btn primary" type="submit">Save Entry</button></div></form></div></div>
+<div class="modal" id="txModal"><div class="dialog"><div class="dialogHead"><h2 id="txTitle">Add Received</h2><button class="btn" data-close="txModal">Close</button></div><form id="txForm"><input type="hidden" id="txProjectId"><input type="hidden" id="txType"><input type="hidden" id="txEditId"><div class="field"><label>Amount</label><input id="txAmount" type="number" min="0.01" step="0.01" required></div><div class="grid2"><div class="field"><label>Purpose / Note</label><input id="txPurpose" required></div><div class="field"><label>Date</label><input id="txDate" type="date" required></div></div><div class="grid2"><div class="field"><label>Category</label><input id="txCategory" placeholder="Materials / Labour / Other"></div><div class="field"><label>Payment Method</label><select id="txMethod"><option>Cash</option><option>Bank</option><option>Mobile Banking</option><option>Cheque</option></select></div></div><div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn" type="button" data-close="txModal">Cancel</button><button class="btn primary" type="submit">Save Entry</button></div></form></div></div>
 
 <div class="modal" id="viewModal"><div class="dialog"><div class="dialogHead"><h2 id="viewTitle">Project</h2><button class="btn" data-close="viewModal">Close</button></div><div id="viewBody"></div></div></div>
 
@@ -179,8 +188,76 @@ function render(){
  const tx=allTx().slice(0,5); const rb=$('recentBox'); if(!tx.length){rb.innerHTML='<div class="empty">No transactions yet</div>'} else {rb.innerHTML=`<table class="table"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${tx.map(x=>`<tr><td>${esc(x.date||'')}</td><td>${esc(x.project)}</td><td>${esc(x.type)}</td><td>${esc(x.purpose||'')}</td><td class="${x.type==='Income'?'in':'out'}">${x.type==='Income'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')}</tbody></table>`}
 }
 function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
-function openProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;const t=totals(p);$('viewTitle').textContent=p.name;$('viewBody').innerHTML=`<div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="lab">Received</div><div class="val">${money(t.inc)}</div></div><div class="card"><div class="lab">Expense</div><div class="val">${money(t.exp)}</div></div><div class="card"><div class="lab">Available Balance</div><div class="val">${money(t.bal)}</div></div></div><div class="actions"><button class="btn primary" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button><button class="btn" onclick="window.PK.openReportPreview('${p.id}')">Preview</button><button class="btn" onclick="window.PK.printProject('${p.id}')">Print</button><button class="btn" onclick="window.PK.downloadProject('${p.id}')">PDF</button><button class="btn" onclick="window.PK.editProjectFromOpen('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button></div><div class="ledger"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${[...p.received.map(x=>({...x,type:'Received'})),...p.expenses.map(x=>({...x,type:'Expense'}))].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>`<tr><td>${esc(x.date||'')}</td><td>${x.type}</td><td>${esc(x.purpose||'')}</td><td class="${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:#68756f">No transactions yet</td></tr>'}</tbody></table></div>`;$('viewModal').classList.add('show');}
-function addTx(id,type){const p=projects.find(x=>x.id===String(id));if(!p)return;$('txProjectId').value=p.id;$('txType').value=type;$('txTitle').textContent=type==='received'?'Add Received':'Add Expense';$('txAmount').value='';$('txPurpose').value='';$('txCategory').value='';$('txMethod').value='Cash';$('txDate').value=today();$('txModal').classList.add('show');}
+function openProject(id){
+  const p=projects.find(x=>x.id===String(id));
+  if(!p)return;
+  const t=totals(p);
+  $('viewTitle').textContent=p.name;
+  const rows=[
+    ...p.received.map(x=>({...x,type:'Received',txType:'received'})),
+    ...p.expenses.map(x=>({...x,type:'Expense',txType:'expense'}))
+  ].sort((a,b)=>(b.date||'').localeCompare(a.date||'') || (Number(b.id)||0)-(Number(a.id)||0));
+  const rowHtml=rows.length?rows.map(x=>`<tr>
+    <td>${esc(x.date||'')}</td>
+    <td>${esc(x.type)}</td>
+    <td>${esc(x.purpose||'')}</td>
+    <td class="${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td>
+    <td><div class="rowActions"><button type="button" class="rowEdit ${x.type==='Expense'?'expenseEdit':''}" onclick="window.PK.editTx('${p.id}','${x.txType}','${x.id}')">Edit</button></div></td>
+  </tr>`).join(''):'<tr><td colspan="5" style="color:#68756f;text-align:center;padding:22px">No transactions yet</td></tr>';
+  $('viewBody').innerHTML=`
+    <div class="cards" style="grid-template-columns:repeat(3,1fr)">
+      <div class="card"><div class="lab">Received</div><div class="val">${money(t.inc)}</div></div>
+      <div class="card"><div class="lab">Expense</div><div class="val">${money(t.exp)}</div></div>
+      <div class="card"><div class="lab">Available Balance</div><div class="val">${money(t.bal)}</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" onclick="window.PK.addTx('${p.id}','received')">Add Received</button>
+      <button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button>
+      <button class="btn" onclick="window.PK.openReportPreview('${p.id}')">Preview</button>
+      <button class="btn" onclick="window.PK.printProject('${p.id}')">Print</button>
+      <button class="btn" onclick="window.PK.downloadProject('${p.id}')">PDF</button>
+      <button class="btn" onclick="window.PK.editProjectFromOpen('${p.id}')">Edit Project</button>
+      <button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button>
+    </div>
+    <div class="ledger">
+      <table class="table">
+        <thead><tr><th>Date</th><th>Type</th><th>Purpose</th><th>Amount</th><th>Action</th></tr></thead>
+        <tbody>${rowHtml}</tbody>
+      </table>
+    </div>`;
+  $('viewModal').classList.add('show');
+}
+function addTx(id,type){
+  const p=projects.find(x=>x.id===String(id));
+  if(!p)return;
+  $('txProjectId').value=p.id;
+  $('txType').value=type;
+  $('txEditId').value='';
+  $('txTitle').textContent=type==='received'?'Add Received':'Add Expense';
+  $('txAmount').value='';
+  $('txPurpose').value='';
+  $('txCategory').value='';
+  $('txMethod').value='Cash';
+  $('txDate').value=today();
+  $('txModal').classList.add('show');
+}
+function editTx(projectId,type,txId){
+  const p=projects.find(x=>x.id===String(projectId));
+  if(!p)return;
+  const list=type==='expense'?p.expenses:p.received;
+  const item=list.find(x=>String(x.id)===String(txId));
+  if(!item)return;
+  $('txProjectId').value=p.id;
+  $('txType').value=type;
+  $('txEditId').value=String(txId);
+  $('txTitle').textContent=type==='expense'?'Edit Expense':'Edit Received';
+  $('txAmount').value=Number(item.amount||0);
+  $('txPurpose').value=item.purpose||item.description||'';
+  $('txCategory').value=item.category||'';
+  $('txMethod').value=item.method||'Cash';
+  $('txDate').value=item.date||today();
+  $('txModal').classList.add('show');
+}
 function editProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;editingProjectId=p.id;$('projectModalTitle').textContent='Edit Project';$('projectName').value=p.name;$('projectManager').value=p.manager;$('projectStatus').value=p.status;$('projectModal').classList.add('show');}
 function deleteProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;projects=projects.filter(x=>x.id!==String(id));save();$('viewModal').classList.remove('show');}
 function openCreate(){editingProjectId=null;$('projectModalTitle').textContent='Create Project';$('projectName').value='';$('projectManager').value='';$('projectStatus').value='Active';$('projectModal').classList.add('show');}
@@ -195,7 +272,7 @@ function buildProjectReportHtml(id){
   const firstDate=all.length ? [...all].sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0].date : '';
   const projectCode=p.code||p.projectCode||('PRJ-'+String(p.id).slice(-4));
   const startDate=p.startDate||firstDate||'—';
-  const reportDate=nowStamp ? nowStamp() : new Date().toLocaleString();
+  const reportDate=(typeof nowStamp==='function') ? nowStamp() : new Date().toLocaleString();
   const receivedRows=p.received.length ? p.received.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map((x,i)=>`<tr>
       <td>${i+1}</td><td>${esc(x.date||'')}</td><td>${esc(x.purpose||x.description||'')}</td>
       <td>${esc(x.method||'')}</td><td class="amt in">${money(x.amount)}</td><td>${esc(x.note||x.category||'')}</td>
@@ -379,7 +456,35 @@ document.getElementById('dailyPdf').onclick=()=>printStatementCurrent();
 syncDailyDateLimit();statementRenderDaily();
 }else if(mode==='monthly'){const currentYear=Number(today().slice(0,4));const names=['January','February','March','April','May','June','July','August','September','October','November','December'];const years=[];for(let i=currentYear-5;i<=currentYear+2;i++)years.push(i);const defaultMonth=today().slice(5,7);tb.innerHTML=`<div style="width:100%"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px"><div class="field"><label>Year</label><select id="monthlyStatementYear">${years.map(y=>`<option value="${y}" ${y===currentYear?'selected':''}>${y}</option>`).join('')}</select></div><div class="field"><label>Month</label><select id="monthlyStatementMonthNum">${names.map((n,i)=>{const mm=String(i+1).padStart(2,'0');return `<option value="${mm}" ${mm===defaultMonth?'selected':''}>${n}</option>`}).join('')}</select></div><button class="btn primary" type="button" id="monthlyRun">Show Statement</button></div></div><div style="display:flex;gap:8px"><button class="btn" type="button" id="monthlyPrint">Print</button><button class="btn" type="button" id="monthlyPdf">PDF</button></div><input id="monthlyStatementMonth" type="hidden" value="${currentYear}-${defaultMonth}">`;document.getElementById('monthlyRun').onclick=()=>{const y=document.getElementById('monthlyStatementYear').value;const m=document.getElementById('monthlyStatementMonthNum').value;document.getElementById('monthlyStatementMonth').value=`${y}-${m}`;statementRenderMonthly();};document.getElementById('monthlyPrint').onclick=()=>printStatementCurrent();document.getElementById('monthlyPdf').onclick=()=>printStatementCurrent();statementRenderMonthly();}else{}document.getElementById('statementPanel').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('statementMenu').classList.remove('show');}
 $('projectForm').addEventListener('submit',e=>{e.preventDefault();const name=$('projectName').value.trim();if(!name)return; if(editingProjectId){const p=projects.find(x=>x.id===editingProjectId);if(p){p.name=name;p.manager=$('projectManager').value.trim();p.status=$('projectStatus').value}}else{if(projects.some(x=>x.name.toLowerCase()===name.toLowerCase())){alert('A project with this name already exists.');return}projects.unshift({id:String(Date.now()),name,manager:$('projectManager').value.trim(),status:$('projectStatus').value,received:[],expenses:[]})}localStorage.setItem(KEY,JSON.stringify(projects));$('projectModal').classList.remove('show');render();});
-$('txForm').addEventListener('submit',e=>{e.preventDefault();const id=$('txProjectId').value;const type=$('txType').value;const p=projects.find(x=>x.id===id);const amount=Number($('txAmount').value||0);if(!p||amount<=0)return;const t=totals(p);if(type==='expense' && amount>t.bal){alert('Expense cannot be greater than available balance.');return}const item={id:Date.now(),amount,purpose:$('txPurpose').value.trim(),date:$('txDate').value||today(),category:$('txCategory').value.trim(),method:$('txMethod').value};if(type==='received')p.received.unshift(item);else p.expenses.unshift(item);localStorage.setItem(KEY,JSON.stringify(projects));$('txModal').classList.remove('show');render();if($('viewModal').classList.contains('show'))openProject(id)});
+$('txForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const id=$('txProjectId').value;
+  const type=$('txType').value;
+  const editId=$('txEditId').value;
+  const p=projects.find(x=>x.id===id);
+  const amount=Number($('txAmount').value||0);
+  if(!p||amount<=0)return;
+  const list=type==='received'?p.received:p.expenses;
+  const itemData={amount,purpose:$('txPurpose').value.trim(),date:$('txDate').value||today(),category:$('txCategory').value.trim(),method:$('txMethod').value};
+  if(editId){
+    const existing=list.find(x=>String(x.id)===String(editId));
+    if(!existing)return;
+    if(type==='expense'){
+      const availableForEdit=totals(p).bal+Number(existing.amount||0);
+      if(amount>availableForEdit){alert('Expense cannot be greater than available balance.');return;}
+    }
+    Object.assign(existing,itemData);
+  }else{
+    const t=totals(p);
+    if(type==='expense' && amount>t.bal){alert('Expense cannot be greater than available balance.');return}
+    list.unshift({id:Date.now(),...itemData});
+  }
+  localStorage.setItem(KEY,JSON.stringify(projects));
+  $('txModal').classList.remove('show');
+  $('txEditId').value='';
+  render();
+  if($('viewModal').classList.contains('show'))openProject(id);
+});
 document.addEventListener('click',e=>{const id=e.target.getAttribute('data-close');if(id)$(id).classList.remove('show')});
 $('newProjectBtn2').onclick=openCreate;
 document.getElementById('reportsNavBtn').addEventListener('click',openReports);
@@ -399,7 +504,7 @@ function monthlyReportRows(ym){return allTransactions().filter(x=>(x.date||'').s
 function renderMonthlyReport(){const ys=document.getElementById('reportYear'),ms=document.getElementById('reportMonth');if(!ys||!ms)return;const ym=`${ys.value}-${ms.value}`;const names=['January','February','March','April','May','June','July','August','September','October','November','December'];const rows=monthlyReportRows(ym);const inc=rows.filter(x=>x.type==='Received').reduce((a,b)=>a+Number(b.amount||0),0);const exp=rows.filter(x=>x.type==='Expense').reduce((a,b)=>a+Number(b.amount||0),0);const byProject={};projects.forEach(p=>{byProject[p.id]={name:p.name,received:0,expense:0,balance:0}});rows.forEach(x=>{if(!byProject[x.projectId])byProject[x.projectId]={name:x.project||'Project',received:0,expense:0,balance:0};if(x.type==='Received')byProject[x.projectId].received+=Number(x.amount||0);else byProject[x.projectId].expense+=Number(x.amount||0);});Object.values(byProject).forEach(v=>v.balance=v.received-v.expense);document.getElementById('reportSummary').innerHTML=`<div class="mini"><b>Total Received</b><strong class="in">${money(inc)}</strong></div><div class="mini"><b>Total Expense</b><strong class="out">${money(exp)}</strong></div><div class="mini"><b>Net Balance</b><strong>${money(inc-exp)}</strong></div><div class="mini"><b>Transactions</b><strong>${rows.length}</strong></div>`;const projectRows=Object.values(byProject).filter(v=>v.received||v.expense).sort((a,b)=>a.name.localeCompare(b.name));const detail=`<div class="reportTitle">${names[Number(ms.value)-1]} ${ys.value} Monthly Report</div><div class="reportMeta">PAIKARIGHOR · TELIPARA, CHANDONA CHOWRASTA, GAZIPUR</div>${projectRows.length?`<table class="reportTable"><thead><tr><th>Project</th><th>Received</th><th>Expense</th><th>Balance</th></tr></thead><tbody>${projectRows.map(v=>`<tr><td class="reportProject">${esc(v.name)}</td><td class="reportAmount in">${money(v.received)}</td><td class="reportAmount out">${money(v.expense)}</td><td class="reportAmount">${money(v.balance)}</td></tr>`).join('')}</tbody></table>`:'<div class="emptyStatement">No project transactions for this month.</div>'}<div style="margin-top:18px"><h3 style="margin-bottom:8px">Transactions</h3>${rows.length?`<table class="reportTable"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.date||'')}</td><td>${esc(x.project||'')}</td><td>${esc(x.type)}</td><td>${esc(x.purpose||'')}</td><td class="reportAmount ${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="emptyStatement">No transactions for this month.</div>'}</div>`;document.getElementById('reportTable').innerHTML=detail;return {title:`${names[Number(ms.value)-1]} ${ys.value} Monthly Report`,html:detail};}
 function printMonthlyReport(){const r=renderMonthlyReport();if(!r)return;const w=window.open('','_blank');if(!w){alert('Please allow pop-ups for print/PDF.');return}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(r.title)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#18201c}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px 10px;border-bottom:1px solid #ddd;text-align:left;font-size:12px}.in{color:#087443;font-weight:700}.out{color:#a03b2f;font-weight:700}h1{font-size:22px;margin:0 0 4px}.meta{color:#68756f;font-size:12px;margin-bottom:18px}</style></head><body>${r.html}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();}
 function openReports(){document.getElementById('dashboardPage').style.display='none';document.getElementById('statementPage').style.display='none';document.getElementById('reportsPage').style.display='block';document.querySelectorAll('.navBtn').forEach(b=>b.classList.remove('active'));document.getElementById('reportsNavBtn')?.classList.add('active');initReportSelectors();renderMonthlyReport();}
-window.PK={openProject,addTx,editProject,editProjectFromOpen,deleteProject,showDeleteConfirm,closeDeleteConfirm,confirmDeleteProject,printProject,downloadProject,openReportPreview};
+window.PK={openProject,addTx,editTx,editProject,editProjectFromOpen,deleteProject,showDeleteConfirm,closeDeleteConfirm,confirmDeleteProject,printProject,downloadProject,openReportPreview};
 load();render();
 })();
 </script>
