@@ -24,6 +24,9 @@
 @media(max-width:900px){.brandAddress{display:none}.avatar{width:40px;height:40px}.brandCopy b{font-size:18px}}
 </style>
 
+<style id="deleteConfirmStyles">
+.deleteConfirmOverlay{position:fixed;inset:0;background:rgba(8,20,15,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:110000}.deleteConfirmOverlay.show{display:flex}.deleteConfirmCard{width:min(420px,100%);background:#fff;border-radius:16px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.28);border:1px solid #dce4df}.deleteConfirmCard h3{margin:0 0 8px;color:#12372A}.deleteConfirmCard p{margin:0 0 18px;color:#68756f;line-height:1.5}.deleteConfirmActions{display:flex;justify-content:flex-end;gap:8px}.deleteConfirmActions .yes{background:#b42318;color:#fff}.deleteConfirmActions button{padding:10px 15px;border-radius:9px;border:1px solid #dce4df;background:#fff;font-weight:800;cursor:pointer}.deleteConfirmActions button:hover{filter:brightness(.98)}
+</style>
 <style id="screenLockStyles">
 .lockTopBtn{width:38px;height:38px;border:1px solid #dce4df;border-radius:10px;background:#fff;color:#087443;display:grid;place-items:center;font-size:18px;cursor:pointer;margin-left:4px;box-shadow:0 2px 8px rgba(16,24,22,.05)}
 .lockTopBtn:hover{background:#eef7f2}
@@ -71,6 +74,16 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
       </div>
     </div>
     <div class="reportPreviewFrameWrap"><iframe class="reportPreviewFrame" id="reportPreviewFrame" title="Project report preview"></iframe></div>
+  </div>
+</div>
+<div class="deleteConfirmOverlay" id="deleteConfirmOverlay" aria-hidden="true">
+  <div class="deleteConfirmCard" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
+    <h3 id="deleteConfirmTitle">Delete Project?</h3>
+    <p id="deleteConfirmText">Are you sure you want to delete this project? This will also remove its received and expense records.</p>
+    <div class="deleteConfirmActions">
+      <button type="button" id="deleteConfirmNo">No</button>
+      <button type="button" id="deleteConfirmYes" class="yes">Yes, Delete</button>
+    </div>
   </div>
 </div>
 <div class="screenLock" id="screenLock" role="dialog" aria-modal="true" aria-labelledby="lockTitle">
@@ -162,11 +175,11 @@ function render(){
  const sums=projects.reduce((a,p)=>{let t=totals(p);a.inc+=t.inc;a.exp+=t.exp;a.count+=t.count;return a},{inc:0,exp:0,count:0});
  $('totalIncome').textContent=money(sums.inc); $('totalExpense').textContent=money(sums.exp); $('totalBalance').textContent=money(sums.inc-sums.exp); $('totalTransactions').textContent=String(sums.count);
  const box=$('projects');
- if(!projects.length){box.innerHTML='<div class="empty" style="grid-column:1/-1"><b>No projects yet</b><div style="margin-top:6px">Click “Create Project” to start.</div></div>';} else {box.innerHTML=projects.map(p=>{const t=totals(p);return `<article class="project"><div class="workspaceTop"><div><h3>${esc(p.name)}</h3><div class="meta">${esc(p.manager||'No manager')} · ${esc(p.status)}</div></div><div class="meta">${t.count} tx</div></div><div class="statRow"><div class="mini"><span>Received</span><b class="in">${money(t.inc)}</b></div><div class="mini"><span>Expense</span><b class="out">${money(t.exp)}</b></div><div class="mini"><span>Balance</span><b>${money(t.bal)}</b></div></div><div class="actions"><button class="btn primary" onclick="window.PK.openProject('${p.id}')">Open</button><button class="btn" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button><button class="btn" onclick="window.PK.editProject('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.deleteProject('${p.id}')">Delete</button></div></article>`}).join('')}
+ if(!projects.length){box.innerHTML='<div class="empty" style="grid-column:1/-1"><b>No projects yet</b><div style="margin-top:6px">Click “Create Project” to start.</div></div>';} else {box.innerHTML=projects.map(p=>{const t=totals(p);return `<article class="project"><div class="workspaceTop"><div><h3>${esc(p.name)}</h3><div class="meta">${esc(p.manager||'No manager')} · ${esc(p.status)}</div></div><div class="meta">${t.count} tx</div></div><div class="statRow"><div class="mini"><span>Received</span><b class="in">${money(t.inc)}</b></div><div class="mini"><span>Expense</span><b class="out">${money(t.exp)}</b></div><div class="mini"><span>Balance</span><b>${money(t.bal)}</b></div></div><div class="actions"><button class="btn primary" onclick="window.PK.openProject('${p.id}')">Open</button><button class="btn" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button><button class="btn" onclick="window.PK.editProject('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button></div></article>`}).join('')}
  const tx=allTx().slice(0,5); const rb=$('recentBox'); if(!tx.length){rb.innerHTML='<div class="empty">No transactions yet</div>'} else {rb.innerHTML=`<table class="table"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${tx.map(x=>`<tr><td>${esc(x.date||'')}</td><td>${esc(x.project)}</td><td>${esc(x.type)}</td><td>${esc(x.purpose||'')}</td><td class="${x.type==='Income'?'in':'out'}">${x.type==='Income'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')}</tbody></table>`}
 }
 function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
-function openProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;const t=totals(p);$('viewTitle').textContent=p.name;$('viewBody').innerHTML=`<div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="lab">Received</div><div class="val">${money(t.inc)}</div></div><div class="card"><div class="lab">Expense</div><div class="val">${money(t.exp)}</div></div><div class="card"><div class="lab">Available Balance</div><div class="val">${money(t.bal)}</div></div></div><div class="actions"><button class="btn primary" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button><button class="btn" onclick="window.PK.openReportPreview('${p.id}')">Preview</button><button class="btn" onclick="window.PK.printProject('${p.id}')">Print</button><button class="btn" onclick="window.PK.downloadProject('${p.id}')">PDF</button><button class="btn" onclick="window.PK.editProject('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.deleteProject('${p.id}')">Delete</button></div><div class="ledger"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${[...p.received.map(x=>({...x,type:'Received'})),...p.expenses.map(x=>({...x,type:'Expense'}))].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>`<tr><td>${esc(x.date||'')}</td><td>${x.type}</td><td>${esc(x.purpose||'')}</td><td class="${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:#68756f">No transactions yet</td></tr>'}</tbody></table></div>`;$('viewModal').classList.add('show');}
+function openProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;const t=totals(p);$('viewTitle').textContent=p.name;$('viewBody').innerHTML=`<div class="cards" style="grid-template-columns:repeat(3,1fr)"><div class="card"><div class="lab">Received</div><div class="val">${money(t.inc)}</div></div><div class="card"><div class="lab">Expense</div><div class="val">${money(t.exp)}</div></div><div class="card"><div class="lab">Available Balance</div><div class="val">${money(t.bal)}</div></div></div><div class="actions"><button class="btn primary" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button><button class="btn" onclick="window.PK.openReportPreview('${p.id}')">Preview</button><button class="btn" onclick="window.PK.printProject('${p.id}')">Print</button><button class="btn" onclick="window.PK.downloadProject('${p.id}')">PDF</button><button class="btn" onclick="window.PK.editProjectFromOpen('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button></div><div class="ledger"><table class="table"><thead><tr><th>Date</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${[...p.received.map(x=>({...x,type:'Received'})),...p.expenses.map(x=>({...x,type:'Expense'}))].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>`<tr><td>${esc(x.date||'')}</td><td>${x.type}</td><td>${esc(x.purpose||'')}</td><td class="${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:#68756f">No transactions yet</td></tr>'}</tbody></table></div>`;$('viewModal').classList.add('show');}
 function addTx(id,type){const p=projects.find(x=>x.id===String(id));if(!p)return;$('txProjectId').value=p.id;$('txType').value=type;$('txTitle').textContent=type==='received'?'Add Received':'Add Expense';$('txAmount').value='';$('txPurpose').value='';$('txCategory').value='';$('txMethod').value='Cash';$('txDate').value=today();$('txModal').classList.add('show');}
 function editProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;editingProjectId=p.id;$('projectModalTitle').textContent='Edit Project';$('projectName').value=p.name;$('projectManager').value=p.manager;$('projectStatus').value=p.status;$('projectModal').classList.add('show');}
 function deleteProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;projects=projects.filter(x=>x.id!==String(id));save();$('viewModal').classList.remove('show');}
@@ -255,6 +268,36 @@ function buildProjectReportHtml(id){
   </div><div class="footer"><div>PAIKARIGHOR · TELIPARA, CHANDONA CHOWRASTA, GAZIPUR</div><div class="pageNo">Page 1</div></div></div><script>window.onload=()=>setTimeout(()=>window.print(),250);<\/script></body></html>`;
   return htmlDoc;
 }
+function showDeleteConfirm(id){
+  const p=projects.find(x=>x.id===String(id));
+  if(!p)return;
+  const overlay=document.getElementById('deleteConfirmOverlay');
+  const text=document.getElementById('deleteConfirmText');
+  if(!overlay)return;
+  overlay.dataset.projectId=String(id);
+  text.textContent=`Are you sure you want to delete “${p.name}”? All received and expense records for this project will also be deleted.`;
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden','false');
+}
+function closeDeleteConfirm(){
+  const overlay=document.getElementById('deleteConfirmOverlay');
+  if(!overlay)return;
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden','true');
+  overlay.dataset.projectId='';
+}
+function confirmDeleteProject(){
+  const overlay=document.getElementById('deleteConfirmOverlay');
+  const id=overlay?.dataset.projectId||'';
+  const p=projects.find(x=>x.id===String(id));
+  closeDeleteConfirm();
+  if(!p)return;
+  projects=projects.filter(x=>x.id!==String(id));
+  save();
+  const view=document.getElementById('viewModal');
+  if(view)view.classList.remove('show');
+  render();
+}
 function openReportPreview(id){
   const htmlDoc=buildProjectReportHtml(id);
   if(!htmlDoc)return;
@@ -263,7 +306,9 @@ function openReportPreview(id){
   const frame=document.getElementById('reportPreviewFrame');
   const title=document.getElementById('reportPreviewTitle');
   if(!overlay||!frame)return;
+  frame.setAttribute('loading','eager');
   title.textContent=(p?p.name:'Project')+' — Report Preview';
+  frame.removeAttribute('src');
   frame.srcdoc=htmlDoc.replace(/<script>[\s\S]*?<\/script>/gi,'');
   overlay.classList.add('show');
   overlay.setAttribute('aria-hidden','false');
@@ -271,25 +316,27 @@ function openReportPreview(id){
 function closeReportPreview(){
   const overlay=document.getElementById('reportPreviewOverlay');
   const frame=document.getElementById('reportPreviewFrame');
-  if(frame)frame.srcdoc='';
+  if(frame){frame.srcdoc='';frame.removeAttribute('src');}
   if(overlay){overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
 }
-function printProject(id){
-  const htmlDoc=buildProjectReportHtml(id); if(!htmlDoc)return;
+function openPrintWindow(id,autoPrint){
+  const htmlDoc=buildProjectReportHtml(id);
+  if(!htmlDoc)return;
   const w=window.open('','_blank');
-  if(!w){alert('Please allow pop-ups for printing.');return;}
-  w.document.open();w.document.write(htmlDoc.replace(/<script>[\s\S]*?<\/script>/gi,''));w.document.close();
-  setTimeout(()=>{try{w.focus();w.print();}catch(e){}},400);
+  if(!w){alert('Please allow pop-ups for print/PDF.');return;}
+  w.document.open();
+  w.document.write(htmlDoc.replace(/<script>[\s\S]*?<\/script>/gi,''));
+  w.document.close();
+  const go=()=>{try{w.focus();if(autoPrint)w.print();}catch(e){}};
+  setTimeout(go,350);
 }
-function downloadProject(id){
-  const htmlDoc=buildProjectReportHtml(id); if(!htmlDoc)return;
-  const w=window.open('','_blank');
-  if(!w){alert('Please allow pop-ups for PDF/print.');return;}
-  w.document.open();w.document.write(htmlDoc.replace(/<script>[\s\S]*?<\/script>/gi,''));w.document.close();
-  setTimeout(()=>{try{w.focus();}catch(e){}},150);
+function printProject(id){openPrintWindow(id,true);}
+function downloadProject(id){openPrintWindow(id,true);}
+function editProjectFromOpen(id){
+  const view=document.getElementById('viewModal');
+  if(view)view.classList.remove('show');
+  editProject(id);
 }
-
-function downloadProject(id){printProject(id)}
 let statementMode='';let statementMenuOpen=false;
 function allTransactions(){return projects.flatMap(p=>[...p.received.map(x=>({...x,type:'Received',project:p.name,projectId:p.id})),...p.expenses.map(x=>({...x,type:'Expense',project:p.name,projectId:p.id}))]);}
 function statementDateValue(d){return d||'';}
@@ -352,12 +399,23 @@ function monthlyReportRows(ym){return allTransactions().filter(x=>(x.date||'').s
 function renderMonthlyReport(){const ys=document.getElementById('reportYear'),ms=document.getElementById('reportMonth');if(!ys||!ms)return;const ym=`${ys.value}-${ms.value}`;const names=['January','February','March','April','May','June','July','August','September','October','November','December'];const rows=monthlyReportRows(ym);const inc=rows.filter(x=>x.type==='Received').reduce((a,b)=>a+Number(b.amount||0),0);const exp=rows.filter(x=>x.type==='Expense').reduce((a,b)=>a+Number(b.amount||0),0);const byProject={};projects.forEach(p=>{byProject[p.id]={name:p.name,received:0,expense:0,balance:0}});rows.forEach(x=>{if(!byProject[x.projectId])byProject[x.projectId]={name:x.project||'Project',received:0,expense:0,balance:0};if(x.type==='Received')byProject[x.projectId].received+=Number(x.amount||0);else byProject[x.projectId].expense+=Number(x.amount||0);});Object.values(byProject).forEach(v=>v.balance=v.received-v.expense);document.getElementById('reportSummary').innerHTML=`<div class="mini"><b>Total Received</b><strong class="in">${money(inc)}</strong></div><div class="mini"><b>Total Expense</b><strong class="out">${money(exp)}</strong></div><div class="mini"><b>Net Balance</b><strong>${money(inc-exp)}</strong></div><div class="mini"><b>Transactions</b><strong>${rows.length}</strong></div>`;const projectRows=Object.values(byProject).filter(v=>v.received||v.expense).sort((a,b)=>a.name.localeCompare(b.name));const detail=`<div class="reportTitle">${names[Number(ms.value)-1]} ${ys.value} Monthly Report</div><div class="reportMeta">PAIKARIGHOR · TELIPARA, CHANDONA CHOWRASTA, GAZIPUR</div>${projectRows.length?`<table class="reportTable"><thead><tr><th>Project</th><th>Received</th><th>Expense</th><th>Balance</th></tr></thead><tbody>${projectRows.map(v=>`<tr><td class="reportProject">${esc(v.name)}</td><td class="reportAmount in">${money(v.received)}</td><td class="reportAmount out">${money(v.expense)}</td><td class="reportAmount">${money(v.balance)}</td></tr>`).join('')}</tbody></table>`:'<div class="emptyStatement">No project transactions for this month.</div>'}<div style="margin-top:18px"><h3 style="margin-bottom:8px">Transactions</h3>${rows.length?`<table class="reportTable"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.date||'')}</td><td>${esc(x.project||'')}</td><td>${esc(x.type)}</td><td>${esc(x.purpose||'')}</td><td class="reportAmount ${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="emptyStatement">No transactions for this month.</div>'}</div>`;document.getElementById('reportTable').innerHTML=detail;return {title:`${names[Number(ms.value)-1]} ${ys.value} Monthly Report`,html:detail};}
 function printMonthlyReport(){const r=renderMonthlyReport();if(!r)return;const w=window.open('','_blank');if(!w){alert('Please allow pop-ups for print/PDF.');return}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(r.title)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#18201c}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px 10px;border-bottom:1px solid #ddd;text-align:left;font-size:12px}.in{color:#087443;font-weight:700}.out{color:#a03b2f;font-weight:700}h1{font-size:22px;margin:0 0 4px}.meta{color:#68756f;font-size:12px;margin-bottom:18px}</style></head><body>${r.html}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();}
 function openReports(){document.getElementById('dashboardPage').style.display='none';document.getElementById('statementPage').style.display='none';document.getElementById('reportsPage').style.display='block';document.querySelectorAll('.navBtn').forEach(b=>b.classList.remove('active'));document.getElementById('reportsNavBtn')?.classList.add('active');initReportSelectors();renderMonthlyReport();}
-window.PK={openProject,addTx,editProject,deleteProject,printProject,downloadProject,openReportPreview};
+window.PK={openProject,addTx,editProject,editProjectFromOpen,deleteProject,showDeleteConfirm,closeDeleteConfirm,confirmDeleteProject,printProject,downloadProject,openReportPreview};
 load();render();
 })();
 </script>
 
 
+
+<script id="projectActionFixScript">
+(function(){
+  const yes=document.getElementById('deleteConfirmYes');
+  const no=document.getElementById('deleteConfirmNo');
+  const del=document.getElementById('deleteConfirmOverlay');
+  yes?.addEventListener('click',()=>window.PK?.confirmDeleteProject());
+  no?.addEventListener('click',()=>window.PK?.closeDeleteConfirm?window.PK.closeDeleteConfirm():del?.classList.remove('show'));
+  del?.addEventListener('click',e=>{if(e.target===del)window.PK?.closeDeleteConfirm?window.PK.closeDeleteConfirm():del.classList.remove('show');});
+})();
+</script>
 <script id="projectReportPreviewScript">
 (function(){
   const q=(id)=>document.getElementById(id);
@@ -366,10 +424,10 @@ load();render();
   close?.addEventListener('click',closeReportPreview);
   overlay.addEventListener('click',e=>{if(e.target===overlay)closeReportPreview();});
   print?.addEventListener('click',()=>{
-    try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){}
+    try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){alert('Print preview could not be opened. Use the Project Print button.');}
   });
   pdf?.addEventListener('click',()=>{
-    try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){}
+    try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){alert('PDF dialog could not be opened. Use the Project PDF button.');}
   });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('show'))closeReportPreview();});
 })();
