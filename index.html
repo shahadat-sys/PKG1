@@ -10,6 +10,16 @@
 .statementMenu{display:none;position:absolute;top:56px;left:50%;transform:translateX(-50%);min-width:255px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 45px rgba(16,24,22,.14);padding:8px;z-index:30}.statementMenu.show{display:block}.statementMenu button{display:block;width:100%;text-align:left;background:#fff;color:#18201c;padding:11px 12px;border-radius:8px;font-weight:700}.statementMenu button:hover{background:#eef7f2;color:#087443}.navWrap{position:relative;display:flex;align-items:center}.statementPanel{margin:0 0 22px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 24px rgba(16,24,22,.05);padding:18px}.statementToolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:14px}.statementToolbar .field{margin:0;min-width:180px}.statementPanel h3{margin:0 0 6px}.monthGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 14px}.monthBtn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px;font-weight:700;cursor:pointer}.monthBtn:hover{background:#eef7f2;color:#087443}@media(max-width:760px){.monthGrid{grid-template-columns:repeat(2,1fr)}}.statementSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.statementSummary .mini{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fbfcfb}.statementSummary .mini b{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.statementSummary .mini strong{font-size:18px}.emptyStatement{padding:30px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}@media(max-width:760px){.statementSummary{grid-template-columns:1fr}.statementMenu{left:auto;right:0;transform:none}}.pageView{display:block}.pageView.hidden{display:none}.wrap{max-width:1280px;margin:0 auto;padding:24px}.hero{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:20px}.hero h1{margin:0 0 6px;font-size:28px;color:var(--black)}.hero p{margin:0;color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 2px 8px rgba(16,24,22,.03)}.card .lab{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700}.card .val{font-size:26px;font-weight:800;margin-top:6px}.sectionHead{display:flex;align-items:center;justify-content:space-between;margin:24px 0 12px}.sectionHead h2{margin:0;font-size:20px}.projects{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.project{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}.project h3{margin:0 0 4px}.meta{font-size:12px;color:var(--muted)}.statRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.mini{background:#f8faf9;border-radius:10px;padding:10px}.mini span{display:block;font-size:11px;color:var(--muted)}.mini b{display:block;margin-top:4px}.actions{display:flex;flex-wrap:wrap;gap:7px}.empty{background:#fff;border:1px dashed var(--line);border-radius:14px;padding:36px;text-align:center;color:var(--muted)}.recent{margin-top:24px}.tableWrap{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px 14px;border-bottom:1px solid #edf1ef;text-align:left;font-size:13px}.table th{background:#fafcfb;color:var(--muted);font-size:11px;text-transform:uppercase}.in{color:var(--green);font-weight:800}.out{color:#a03b2f;font-weight:800}.modal{position:fixed;inset:0;background:rgba(16,24,22,.42);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}.dialog{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.2)}.dialog h2{margin-top:0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{margin-bottom:12px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:#fff}.dialogHead{display:flex;justify-content:space-between;align-items:center}.ledger{margin-top:16px}.workspaceTop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.balanceBig{font-size:34px;font-weight:900;color:var(--green)}.tabs{display:flex;gap:8px;margin:16px 0}.pill{padding:8px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--deep)}.foot{margin-top:28px;color:var(--muted);font-size:12px;text-align:center}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.projects{grid-template-columns:1fr 1fr}.nav{gap:2px}.navBtn{padding:9px 8px;font-size:12px}.accountText{display:none}}
 @media(max-width:620px){.wrap{padding:16px}.hero{flex-direction:column;align-items:stretch}.cards,.projects,.grid2{grid-template-columns:1fr}.top{padding:8px 12px;flex-wrap:wrap}.nav{order:3;width:100%;overflow:auto;justify-content:flex-start}.brand b{font-size:18px}.brandLogoImg{width:42px;height:42px}.avatar{width:36px;height:36px}}
+
+/* Transaction editor must always appear above the project view */
+#txModal{z-index:10050!important}
+#txModal .dialog{position:relative;z-index:10051}
+.printSettingsModal{position:fixed;inset:0;background:rgba(10,20,15,.45);display:none;align-items:center;justify-content:center;z-index:12000;padding:20px}
+.printSettingsModal.show{display:flex}
+.printSettingsCard{width:min(560px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.25);padding:22px}
+.printSettingsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.printSettingsGrid .full{grid-column:1/-1}
+.printSettingsActions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap}
+@media(max-width:600px){.printSettingsGrid{grid-template-columns:1fr}}
 </style>
 
 <style id="profile-address-overrides">
@@ -25,11 +35,12 @@
 </style>
 
 <style id="transactionEditStyles">
-.ledger .rowActions{display:flex;gap:6px;align-items:center}
+.ledger .rowActions{display:flex;gap:6px;align-items:center;position:relative}
 .ledger .rowEdit{padding:6px 9px;border-radius:8px;background:#fff;border:1px solid #dce4df;color:#12372A;font-weight:800;font-size:12px;cursor:pointer}
 .ledger .rowEdit:hover{background:#eef7f2;color:#087443;border-color:#b9d5c7}
 .ledger .rowEdit.expenseEdit{color:#b42318}
 .ledger .rowEdit.expenseEdit:hover{background:#fff3f1;border-color:#e8bbb6}
+.expenseMenuWrap{position:relative;display:inline-flex}.expenseMenuBtn{width:34px;height:34px;border:1px solid #dce4df;background:#fff;border-radius:9px;cursor:pointer;font-size:20px;line-height:1;font-weight:900;color:#40504a}.expenseMenuBtn:hover{background:#eef7f2;border-color:#b9d5c7}.expenseMenu{position:absolute;right:0;top:40px;display:none;min-width:105px;background:#fff;border:1px solid #dce4df;border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.12);z-index:50;overflow:hidden}.expenseMenu.show{display:block}.expenseMenu button{display:block;width:100%;padding:10px 12px;border:0;background:#fff;text-align:left;font-weight:700;cursor:pointer;font-size:12px}.expenseMenu button:hover{background:#f2f7f4}.expenseMenu .deleteOpt{color:#b42318}
 @media(max-width:760px){.ledger .rowActions{flex-direction:column;align-items:flex-start}}
 </style>
 
@@ -69,22 +80,9 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
 @media(max-width:760px){.reportPreviewShell{height:96vh}.reportPreviewHead{align-items:flex-start}.reportPreviewActions{justify-content:flex-end}.reportPreviewFrameWrap{padding:8px}.reportPreviewFrame{min-height:600px}}
 </style>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="locked">
-
-<div class="reportPreviewOverlay" id="reportPreviewOverlay" aria-hidden="true">
-  <div class="reportPreviewShell" role="dialog" aria-modal="true" aria-labelledby="reportPreviewTitle">
-    <div class="reportPreviewHead">
-      <div class="reportPreviewTitle" id="reportPreviewTitle">Project Report Preview</div>
-      <div class="reportPreviewActions">
-        <button class="btn primary" id="reportPreviewPrint" type="button">Print</button>
-        <button class="btn" id="reportPreviewPdf" type="button">Save as PDF</button>
-        <button class="btn" id="reportPreviewClose" type="button">Close</button>
-      </div>
-    </div>
-    <div class="reportPreviewFrameWrap"><iframe class="reportPreviewFrame" id="reportPreviewFrame" title="Project report preview"></iframe></div>
-  </div>
-</div>
 <div class="deleteConfirmOverlay" id="deleteConfirmOverlay" aria-hidden="true">
   <div class="deleteConfirmCard" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
     <h3 id="deleteConfirmTitle">Delete Project?</h3>
@@ -184,7 +182,7 @@ function render(){
  const sums=projects.reduce((a,p)=>{let t=totals(p);a.inc+=t.inc;a.exp+=t.exp;a.count+=t.count;return a},{inc:0,exp:0,count:0});
  $('totalIncome').textContent=money(sums.inc); $('totalExpense').textContent=money(sums.exp); $('totalBalance').textContent=money(sums.inc-sums.exp); $('totalTransactions').textContent=String(sums.count);
  const box=$('projects');
- if(!projects.length){box.innerHTML='<div class="empty" style="grid-column:1/-1"><b>No projects yet</b><div style="margin-top:6px">Click “Create Project” to start.</div></div>';} else {box.innerHTML=projects.map(p=>{const t=totals(p);return `<article class="project"><div class="workspaceTop"><div><h3>${esc(p.name)}</h3><div class="meta">${esc(p.manager||'No manager')} · ${esc(p.status)}</div></div><div class="meta">${t.count} tx</div></div><div class="statRow"><div class="mini"><span>Received</span><b class="in">${money(t.inc)}</b></div><div class="mini"><span>Expense</span><b class="out">${money(t.exp)}</b></div><div class="mini"><span>Balance</span><b>${money(t.bal)}</b></div></div><div class="actions"><button class="btn primary" onclick="window.PK.openProject('${p.id}')">Open</button><button class="btn" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button><button class="btn" onclick="window.PK.editProject('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button></div></article>`}).join('')}
+ if(!projects.length){box.innerHTML='<div class="empty" style="grid-column:1/-1"><b>No projects yet</b><div style="margin-top:6px">Click “Create Project” to start.</div></div>';} else {box.innerHTML=projects.map(p=>{const t=totals(p);return `<article class="project"><div class="workspaceTop"><div><h3>${esc(p.name)}</h3><div class="meta">${esc(p.manager||'No manager')} · ${esc(p.status)}</div></div><div class="meta">${t.count} tx</div></div><div class="statRow"><div class="mini"><span>Received</span><b class="in">${money(t.inc)}</b></div><div class="mini"><span>Expense</span><b class="out">${money(t.exp)}</b></div><div class="mini"><span>Balance</span><b>${money(t.bal)}</b></div></div><div class="actions"><button class="btn primary" onclick="window.PK.openProject('${p.id}')">Open</button><button class="btn" onclick="window.PK.addTx('${p.id}','received')">Add Received</button><button class="btn" onclick="window.PK.editProject('${p.id}')">Edit</button><button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button></div></article>`}).join('')}
  const tx=allTx().slice(0,5); const rb=$('recentBox'); if(!tx.length){rb.innerHTML='<div class="empty">No transactions yet</div>'} else {rb.innerHTML=`<table class="table"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${tx.map(x=>`<tr><td>${esc(x.date||'')}</td><td>${esc(x.project)}</td><td>${esc(x.type)}</td><td>${esc(x.purpose||'')}</td><td class="${x.type==='Income'?'in':'out'}">${x.type==='Income'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')}</tbody></table>`}
 }
 function esc(v){return String(v==null?'':v).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]));}
@@ -197,36 +195,68 @@ function openProject(id){
     ...p.received.map(x=>({...x,type:'Received',txType:'received'})),
     ...p.expenses.map(x=>({...x,type:'Expense',txType:'expense'}))
   ].sort((a,b)=>(b.date||'').localeCompare(a.date||'') || (Number(b.id)||0)-(Number(a.id)||0));
-  const rowHtml=rows.length?rows.map(x=>`<tr>
-    <td>${esc(x.date||'')}</td>
-    <td>${esc(x.type)}</td>
-    <td>${esc(x.purpose||'')}</td>
-    <td class="${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td>
-    <td><div class="rowActions"><button type="button" class="rowEdit ${x.type==='Expense'?'expenseEdit':''}" onclick="window.PK.editTx('${p.id}','${x.txType}','${x.id}')">Edit</button></div></td>
-  </tr>`).join(''):'<tr><td colspan="5" style="color:#68756f;text-align:center;padding:22px">No transactions yet</td></tr>';
+  const expenseCount=p.expenses.length;
+  const rowHtml=rows.length?rows.map(x=>{
+    const isExpense=x.type==='Expense';
+    return `<tr>
+      <td>${isExpense?`<input class="expenseSelect" type="checkbox" data-expense-id="${esc(x.id)}" aria-label="Select expense">`:''}</td>
+      <td>${esc(x.date||'')}</td>
+      <td>${esc(x.type)}</td>
+      <td>${esc(x.purpose||'')}</td>
+      <td class="${isExpense?'out':'in'}">${isExpense?'-':'+'} ${money(x.amount)}</td>
+      <td><div class="rowActions">${isExpense?`<div class="expenseMenuWrap"><button type="button" class="expenseMenuBtn" aria-label="Expense options" onclick="window.PK.toggleExpenseMenu(this,event)">⋮</button><div class="expenseMenu"><button type="button" onclick="window.PK.editTx('${p.id}','expense','${x.id}');window.PK.closeExpenseMenus()">Edit</button><button type="button" class="deleteOpt" onclick="window.PK.deleteExpense('${p.id}','${x.id}')">Delete</button></div></div>`:'—'}</div></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="6" style="color:#68756f;text-align:center;padding:22px">No transactions yet</td></tr>';
   $('viewBody').innerHTML=`
     <div class="cards" style="grid-template-columns:repeat(3,1fr)">
       <div class="card"><div class="lab">Received</div><div class="val">${money(t.inc)}</div></div>
       <div class="card"><div class="lab">Expense</div><div class="val">${money(t.exp)}</div></div>
       <div class="card"><div class="lab">Available Balance</div><div class="val">${money(t.bal)}</div></div>
     </div>
-    <div class="actions">
-      <button class="btn primary" onclick="window.PK.addTx('${p.id}','received')">Add Received</button>
-      <button class="btn" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button>
-      <button class="btn" onclick="window.PK.openReportPreview('${p.id}')">Preview</button>
+    <div class="actions projectViewActions">
+      <button class="btn primary" onclick="window.PK.addTx('${p.id}','expense')">Add Expense</button>
       <button class="btn" onclick="window.PK.printProject('${p.id}')">Print</button>
       <button class="btn" onclick="window.PK.downloadProject('${p.id}')">PDF</button>
-      <button class="btn" onclick="window.PK.editProjectFromOpen('${p.id}')">Edit Project</button>
-      <button class="btn danger" onclick="window.PK.showDeleteConfirm('${p.id}')">Delete</button>
     </div>
     <div class="ledger">
       <table class="table">
-        <thead><tr><th>Date</th><th>Type</th><th>Purpose</th><th>Amount</th><th>Action</th></tr></thead>
+        <thead><tr><th style="width:42px">Select</th><th>Date</th><th>Type</th><th>Purpose</th><th>Amount</th><th>Action</th></tr></thead>
         <tbody>${rowHtml}</tbody>
       </table>
     </div>`;
   $('viewModal').classList.add('show');
 }
+function deleteSelectedExpenses(projectId){
+  const p=projects.find(x=>x.id===String(projectId));
+  if(!p)return;
+  const ids=[...document.querySelectorAll('#viewBody .expenseSelect:checked')].map(el=>String(el.getAttribute('data-expense-id')));
+  if(!ids.length){alert('Please select at least one expense to delete.');return;}
+  if(!confirm(`Delete ${ids.length} selected expense${ids.length>1?'s':''}?`))return;
+  p.expenses=p.expenses.filter(x=>!ids.includes(String(x.id)));
+  localStorage.setItem(KEY,JSON.stringify(projects));
+  render();
+  openProject(projectId);
+}
+function toggleExpenseMenu(btn,e){
+  if(e)e.stopPropagation();
+  closeExpenseMenus();
+  const menu=btn.nextElementSibling;
+  if(menu)menu.classList.add('show');
+}
+function closeExpenseMenus(){document.querySelectorAll('.expenseMenu.show').forEach(m=>m.classList.remove('show'));}
+function deleteExpense(projectId,txId){
+  closeExpenseMenus();
+  const p=projects.find(x=>x.id===String(projectId));
+  if(!p)return;
+  const item=p.expenses.find(x=>String(x.id)===String(txId));
+  if(!item)return;
+  if(!confirm('Delete this expense?'))return;
+  p.expenses=p.expenses.filter(x=>String(x.id)!==String(txId));
+  localStorage.setItem(KEY,JSON.stringify(projects));
+  render();
+  openProject(projectId);
+}
+
 function addTx(id,type){
   const p=projects.find(x=>x.id===String(id));
   if(!p)return;
@@ -256,7 +286,11 @@ function editTx(projectId,type,txId){
   $('txCategory').value=item.category||'';
   $('txMethod').value=item.method||'Cash';
   $('txDate').value=item.date||today();
+  // Close the project view first so the edit form is always visibly in front.
+  const view=document.getElementById('viewModal');
+  if(view)view.classList.remove('show');
   $('txModal').classList.add('show');
+  setTimeout(()=>{ try{$('txAmount').focus();}catch(e){} },50);
 }
 function editProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;editingProjectId=p.id;$('projectModalTitle').textContent='Edit Project';$('projectName').value=p.name;$('projectManager').value=p.manager;$('projectStatus').value=p.status;$('projectModal').classList.add('show');}
 function deleteProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;projects=projects.filter(x=>x.id!==String(id));save();$('viewModal').classList.remove('show');}
@@ -400,15 +434,49 @@ function openPrintWindow(id,autoPrint){
   const htmlDoc=buildProjectReportHtml(id);
   if(!htmlDoc)return;
   const w=window.open('','_blank');
-  if(!w){alert('Please allow pop-ups for print/PDF.');return;}
+  if(!w){alert('Please allow pop-ups for printing.');return;}
   w.document.open();
   w.document.write(htmlDoc.replace(/<script>[\s\S]*?<\/script>/gi,''));
   w.document.close();
-  const go=()=>{try{w.focus();if(autoPrint)w.print();}catch(e){}};
-  setTimeout(go,350);
+  const go=()=>{try{w.focus();if(autoPrint)w.print();}catch(e){alert('Print could not be started.');}};
+  setTimeout(go,500);
 }
 function printProject(id){openPrintWindow(id,true);}
-function downloadProject(id){openPrintWindow(id,true);}
+async function downloadProject(id){
+  const htmlDoc=buildProjectReportHtml(id);
+  if(!htmlDoc)return;
+  const p=projects.find(x=>x.id===String(id));
+  const filename=((p&&p.name)||'Project-Report').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-+|-+$/g,'')+'.pdf';
+  if(typeof window.html2pdf!=='function'){
+    alert('PDF engine could not load. The print window will open so you can choose “Save as PDF”.');
+    openPrintWindow(id,true);
+    return;
+  }
+  try{
+    const parsed=new DOMParser().parseFromString(htmlDoc,'text/html');
+    const wrap=document.createElement('div');
+    wrap.style.position='fixed';wrap.style.left='-100000px';wrap.style.top='0';wrap.style.width='210mm';wrap.style.background='#fff';wrap.style.zIndex='-1';
+    const style=document.createElement('style');
+    style.textContent=[...parsed.head.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+    wrap.appendChild(style);
+    const content=document.createElement('div');
+    content.innerHTML=parsed.body.innerHTML;
+    wrap.appendChild(content);
+    document.body.appendChild(wrap);
+    await window.html2pdf().set({
+      margin:0,
+      filename,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+    }).from(content).save();
+    wrap.remove();
+  }catch(e){
+    document.querySelectorAll('body > div').forEach(el=>{if(el.dataset.pdfTemp==='1')el.remove();});
+    alert('Direct PDF download failed. The print window will open so you can choose “Save as PDF”.');
+    openPrintWindow(id,true);
+  }
+}
 function editProjectFromOpen(id){
   const view=document.getElementById('viewModal');
   if(view)view.classList.remove('show');
@@ -485,7 +553,7 @@ $('txForm').addEventListener('submit',e=>{
   render();
   if($('viewModal').classList.contains('show'))openProject(id);
 });
-document.addEventListener('click',e=>{const id=e.target.getAttribute('data-close');if(id)$(id).classList.remove('show')});
+document.addEventListener('click',e=>{const id=e.target.getAttribute('data-close');if(id)$(id).classList.remove('show');if(!e.target.closest('.expenseMenuWrap'))closeExpenseMenus();});
 $('newProjectBtn2').onclick=openCreate;
 document.getElementById('reportsNavBtn').addEventListener('click',openReports);
 document.getElementById('generateReportBtn').addEventListener('click',renderMonthlyReport);
@@ -504,13 +572,34 @@ function monthlyReportRows(ym){return allTransactions().filter(x=>(x.date||'').s
 function renderMonthlyReport(){const ys=document.getElementById('reportYear'),ms=document.getElementById('reportMonth');if(!ys||!ms)return;const ym=`${ys.value}-${ms.value}`;const names=['January','February','March','April','May','June','July','August','September','October','November','December'];const rows=monthlyReportRows(ym);const inc=rows.filter(x=>x.type==='Received').reduce((a,b)=>a+Number(b.amount||0),0);const exp=rows.filter(x=>x.type==='Expense').reduce((a,b)=>a+Number(b.amount||0),0);const byProject={};projects.forEach(p=>{byProject[p.id]={name:p.name,received:0,expense:0,balance:0}});rows.forEach(x=>{if(!byProject[x.projectId])byProject[x.projectId]={name:x.project||'Project',received:0,expense:0,balance:0};if(x.type==='Received')byProject[x.projectId].received+=Number(x.amount||0);else byProject[x.projectId].expense+=Number(x.amount||0);});Object.values(byProject).forEach(v=>v.balance=v.received-v.expense);document.getElementById('reportSummary').innerHTML=`<div class="mini"><b>Total Received</b><strong class="in">${money(inc)}</strong></div><div class="mini"><b>Total Expense</b><strong class="out">${money(exp)}</strong></div><div class="mini"><b>Net Balance</b><strong>${money(inc-exp)}</strong></div><div class="mini"><b>Transactions</b><strong>${rows.length}</strong></div>`;const projectRows=Object.values(byProject).filter(v=>v.received||v.expense).sort((a,b)=>a.name.localeCompare(b.name));const detail=`<div class="reportTitle">${names[Number(ms.value)-1]} ${ys.value} Monthly Report</div><div class="reportMeta">PAIKARIGHOR · TELIPARA, CHANDONA CHOWRASTA, GAZIPUR</div>${projectRows.length?`<table class="reportTable"><thead><tr><th>Project</th><th>Received</th><th>Expense</th><th>Balance</th></tr></thead><tbody>${projectRows.map(v=>`<tr><td class="reportProject">${esc(v.name)}</td><td class="reportAmount in">${money(v.received)}</td><td class="reportAmount out">${money(v.expense)}</td><td class="reportAmount">${money(v.balance)}</td></tr>`).join('')}</tbody></table>`:'<div class="emptyStatement">No project transactions for this month.</div>'}<div style="margin-top:18px"><h3 style="margin-bottom:8px">Transactions</h3>${rows.length?`<table class="reportTable"><thead><tr><th>Date</th><th>Project</th><th>Type</th><th>Purpose</th><th>Amount</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.date||'')}</td><td>${esc(x.project||'')}</td><td>${esc(x.type)}</td><td>${esc(x.purpose||'')}</td><td class="reportAmount ${x.type==='Received'?'in':'out'}">${x.type==='Received'?'+':'-'} ${money(x.amount)}</td></tr>`).join('')}</tbody></table>`:'<div class="emptyStatement">No transactions for this month.</div>'}</div>`;document.getElementById('reportTable').innerHTML=detail;return {title:`${names[Number(ms.value)-1]} ${ys.value} Monthly Report`,html:detail};}
 function printMonthlyReport(){const r=renderMonthlyReport();if(!r)return;const w=window.open('','_blank');if(!w){alert('Please allow pop-ups for print/PDF.');return}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(r.title)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#18201c}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px 10px;border-bottom:1px solid #ddd;text-align:left;font-size:12px}.in{color:#087443;font-weight:700}.out{color:#a03b2f;font-weight:700}h1{font-size:22px;margin:0 0 4px}.meta{color:#68756f;font-size:12px;margin-bottom:18px}</style></head><body>${r.html}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();}
 function openReports(){document.getElementById('dashboardPage').style.display='none';document.getElementById('statementPage').style.display='none';document.getElementById('reportsPage').style.display='block';document.querySelectorAll('.navBtn').forEach(b=>b.classList.remove('active'));document.getElementById('reportsNavBtn')?.classList.add('active');initReportSelectors();renderMonthlyReport();}
-window.PK={openProject,addTx,editTx,editProject,editProjectFromOpen,deleteProject,showDeleteConfirm,closeDeleteConfirm,confirmDeleteProject,printProject,downloadProject,openReportPreview};
+window.PK={openProject,addTx,editTx,deleteExpense,toggleExpenseMenu,closeExpenseMenus,deleteSelectedExpenses,editProject,editProjectFromOpen,deleteProject,showDeleteConfirm,closeDeleteConfirm,confirmDeleteProject,printProject,downloadProject,buildProjectReportHtml};
 load();render();
 })();
 </script>
 
 
 
+<div class="printSettingsModal" id="printSettingsModal" aria-hidden="true">
+  <div class="printSettingsCard" role="dialog" aria-modal="true" aria-labelledby="printSettingsTitle">
+    <div class="dialogHead" style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px">
+      <h2 id="printSettingsTitle" style="margin:0">Print Settings</h2>
+      <button class="btn" type="button" id="printSettingsClose">Close</button>
+    </div>
+    <div class="printSettingsGrid">
+      <div class="field"><label>Paper Size</label><select id="printPaperSize">
+        <option value="A4">A4</option><option value="A3">A3</option><option value="A5">A5</option>
+        <option value="Letter">Letter</option><option value="Legal">Legal</option><option value="Executive">Executive</option><option value="Tabloid">Tabloid</option><option value="custom">Custom Size</option>
+      </select></div>
+      <div class="field"><label>Orientation</label><select id="printOrientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+      <div class="field"><label>Margins</label><select id="printMargins"><option value="0">No Margin</option><option value="5" selected>5 mm</option><option value="10">10 mm</option><option value="15">15 mm</option><option value="20">20 mm</option></select></div>
+      <div class="field"><label>Scale</label><select id="printScale"><option value="80">80%</option><option value="90">90%</option><option value="100" selected>100%</option><option value="110">110%</option><option value="120">120%</option></select></div>
+      <div class="field customPrintSize" style="display:none"><label>Custom Width (mm)</label><input id="printCustomWidth" type="number" min="20" step="1" value="210"></div>
+      <div class="field customPrintSize" style="display:none"><label>Custom Height (mm)</label><input id="printCustomHeight" type="number" min="20" step="1" value="297"></div>
+    </div>
+    <div style="margin-top:12px;color:#68756f;font-size:12px">Choose any standard paper size or enter your own width and height. Your browser's print dialog will still provide printer-specific options.</div>
+    <div class="printSettingsActions"><button class="btn" type="button" id="printSettingsCancel">Cancel</button><button class="btn primary" type="button" id="printSettingsGo">Print Now</button></div>
+  </div>
+</div>
 <script id="projectActionFixScript">
 (function(){
   const yes=document.getElementById('deleteConfirmYes');
@@ -521,25 +610,10 @@ load();render();
   del?.addEventListener('click',e=>{if(e.target===del)window.PK?.closeDeleteConfirm?window.PK.closeDeleteConfirm():del.classList.remove('show');});
 })();
 </script>
-<script id="projectReportPreviewScript">
-(function(){
-  const q=(id)=>document.getElementById(id);
-  const close=q('reportPreviewClose'), print=q('reportPreviewPrint'), pdf=q('reportPreviewPdf'), overlay=q('reportPreviewOverlay'), frame=q('reportPreviewFrame');
-  if(!overlay||!frame)return;
-  close?.addEventListener('click',closeReportPreview);
-  overlay.addEventListener('click',e=>{if(e.target===overlay)closeReportPreview();});
-  print?.addEventListener('click',()=>{
-    try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){alert('Print preview could not be opened. Use the Project Print button.');}
-  });
-  pdf?.addEventListener('click',()=>{
-    try{frame.contentWindow.focus();frame.contentWindow.print();}catch(e){alert('PDF dialog could not be opened. Use the Project PDF button.');}
-  });
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&overlay.classList.contains('show'))closeReportPreview();});
-})();
-</script>
+
 <script id="screenLockScript">
 (function(){
-  const PIN_KEY='paikarighor_pin_v1';
+  const PIN_KEY='paikarighor_pin_v2';
   const RECOVERY_KEY='paikarighor_recovery_v1';
   const DEFAULT_PIN='1234';
   const DEFAULT_RECOVERY='PIKG-RECOVER-2026';
@@ -588,3 +662,44 @@ load();render();
 </script>
 </body>
 </html>
+
+<script id="customPrintController">
+(function(){
+  const modal=document.getElementById('printSettingsModal');
+  const size=document.getElementById('printPaperSize');
+  const orientation=document.getElementById('printOrientation');
+  const margins=document.getElementById('printMargins');
+  const scale=document.getElementById('printScale');
+  const customFields=document.querySelectorAll('.customPrintSize');
+  const width=document.getElementById('printCustomWidth');
+  const height=document.getElementById('printCustomHeight');
+  let pendingProjectId='';
+  const dims={A4:[210,297],A3:[297,420],A5:[148,210],Letter:[216,279],Legal:[216,356],Executive:[184,267],Tabloid:[279,432]};
+  function toggleCustom(){const on=size.value==='custom';customFields.forEach(x=>x.style.display=on?'block':'none');}
+  function close(){modal?.classList.remove('show');modal?.setAttribute('aria-hidden','true');pendingProjectId='';}
+  size?.addEventListener('change',toggleCustom);
+  document.getElementById('printSettingsClose')?.addEventListener('click',close);
+  document.getElementById('printSettingsCancel')?.addEventListener('click',close);
+  modal?.addEventListener('click',e=>{if(e.target===modal)close()});
+  window.PK.openPrintSettings=function(id){pendingProjectId=String(id);size.value='A4';orientation.value='portrait';margins.value='5';scale.value='100';toggleCustom();modal.classList.add('show');modal.setAttribute('aria-hidden','false');};
+  document.getElementById('printSettingsGo')?.addEventListener('click',function(){
+    const id=pendingProjectId;if(!id)return;
+    let d=dims[size.value]||[Number(width.value)||210,Number(height.value)||297];
+    let w=d[0],h=d[1];
+    if(orientation.value==='landscape'){const t=w;w=h;h=t;}
+    const html=window.PK.buildProjectReportHtml(id);
+    if(!html){alert('Could not build the project report.');return;}
+    const pageRule=`@page{size:${w}mm ${h}mm;margin:${Number(margins.value)||0}mm}`;
+    const pageSizeRule=`.page{width:${w}mm!important;min-height:${h}mm!important;margin:0 auto!important;transform:scale(${(Number(scale.value)||100)/100});transform-origin:top center}`;
+    const finalHtml=html.replace(/@page\{[^}]*\}/i,pageRule).replace(/\.page\{[^}]*\}/i,m=>m+pageSizeRule).replace('</head>',`<style>${pageRule}${pageSizeRule}</style></head>`).replace(/<script>[\s\S]*?<\/script>/gi,'');
+    const wwin=window.open('','_blank');
+    if(!wwin){alert('Please allow pop-ups for printing.');return;}
+    wwin.document.open();wwin.document.write(finalHtml);wwin.document.close();
+    setTimeout(()=>{try{wwin.focus();wwin.print();}catch(e){alert('Print could not be started.');}},600);
+    close();
+  });
+  // Replace the existing Print action with the custom paper-size dialog.
+  const oldPrint=window.PK.printProject;
+  window.PK.printProject=function(id){window.PK.openPrintSettings(id);};
+})();
+</script>
