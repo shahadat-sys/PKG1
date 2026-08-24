@@ -136,7 +136,7 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
 <main class="wrap"><section id="dashboardPage" class="pageView">
 <div id="dashboardAnchor"></div>
 <section class="hero"><div><h1>Project Overview</h1><p>Create a project, receive money into that project, and record purpose-wise expenses from the same fund.</p></div></section>
-<section class="cards"><div class="card"><div class="lab">Total Balance</div><div class="val" id="totalBalance">৳0.00</div></div><div class="card"><div class="lab">Total Income</div><div class="val" id="totalIncome">৳0.00</div></div><div class="card"><div class="lab">Total Expense</div><div class="val" id="totalExpense">৳0.00</div></div><div class="card"><div class="lab">Transactions</div><div class="val" id="totalTransactions">0</div></div></section>
+<section class="cards"><div class="card"><div class="lab">Total Balance</div><div class="val" id="totalBalance">0.00</div></div><div class="card"><div class="lab">Total Income</div><div class="val" id="totalIncome">0.00</div></div><div class="card"><div class="lab">Total Expense</div><div class="val" id="totalExpense">0.00</div></div><div class="card"><div class="lab">Transactions</div><div class="val" id="totalTransactions">0</div></div></section>
 
 <div id="accountsAnchor"></div><section><div class="sectionHead"><h2>Projects</h2><button class="btn primary" id="newProjectBtn2">+ Create Project</button></div><div id="projects" class="projects"></div></section>
 <div id="expensesAnchor"></div><div id="reportsAnchor"></div><section class="recent"><div class="sectionHead"><h2>Recent Transactions</h2><span class="meta">Latest 5</span></div><div id="recentBox" class="tableWrap"></div></section>
@@ -172,7 +172,7 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
 const KEY='PAIKARIGHOR_PROJECTS_V1';
 let projects=[]; let editingProjectId=null;
 const $=id=>document.getElementById(id);
-const money=n=>'৳'+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
+const money=n=>''+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
 const today=()=>new Date().toISOString().slice(0,10);
 function load(){try{projects=JSON.parse(localStorage.getItem(KEY)||'[]'); if(!Array.isArray(projects))projects=[];}catch(e){projects=[]} projects=projects.map(p=>({id:String(p.id),name:p.name||'Untitled Project',manager:p.manager||'',status:p.status||'Active',received:Array.isArray(p.received)?p.received:[],expenses:Array.isArray(p.expenses)?p.expenses:[]}));}
 function save(){localStorage.setItem(KEY,JSON.stringify(projects)); render();}
@@ -363,18 +363,18 @@ function buildProjectReportHtml(id){
     </div>
     <div class="projectBox"><div class="projectGrid"><div><div class="projectLabel">Project Name</div><div class="projectName">${esc(p.name)}</div></div><div><div class="smallKey">Project Code</div><div class="smallVal">${esc(projectCode)}</div></div><div><div class="smallKey">Start Date</div><div class="smallVal">${esc(startDate)}</div></div></div></div>
     <div class="section"><div class="sectionTitle">Project Summary<div class="rule"></div></div><div class="summary">
-      <div class="sumCard"><div class="sumLabel">Total Received</div><div class="sumVal">৳ ${money(t.inc)}</div></div>
-      <div class="sumCard red"><div class="sumLabel">Total Expense</div><div class="sumVal">৳ ${money(t.exp)}</div></div>
-      <div class="sumCard"><div class="sumLabel">Net Balance</div><div class="sumVal">৳ ${money(t.bal)}</div></div>
+      <div class="sumCard"><div class="sumLabel">Total Received</div><div class="sumVal">${money(t.inc)}</div></div>
+      <div class="sumCard red"><div class="sumLabel">Total Expense</div><div class="sumVal">${money(t.exp)}</div></div>
+      <div class="sumCard"><div class="sumLabel">Net Balance</div><div class="sumVal">${money(t.bal)}</div></div>
       <div class="sumCard blue"><div class="sumLabel">Total Transactions</div><div class="sumVal">${transCount}</div></div>
     </div></div>
-    <div class="section"><div class="tableTitle"><div><div class="sectionTitle" style="margin:0">Received Summary</div></div><div class="total">Total Received: ৳ ${money(t.inc)}</div></div>
-      <table class="received"><thead><tr><th>#</th><th>Date</th><th>Description</th><th>Payment Method</th><th style="text-align:right">Received (৳)</th><th>Note</th></tr></thead><tbody>${receivedRows}${p.received.length?`<tr class="totalRow"><td colspan="4" style="text-align:right">TOTAL</td><td class="amt in">${money(t.inc)}</td><td></td></tr>`:''}</tbody></table>
+    <div class="section"><div class="tableTitle"><div><div class="sectionTitle" style="margin:0">Received Summary</div></div><div class="total">Total Received: ${money(t.inc)}</div></div>
+      <table class="received"><thead><tr><th>#</th><th>Date</th><th>Description</th><th>Payment Method</th><th style="text-align:right">Received</th><th>Note</th></tr></thead><tbody>${receivedRows}${p.received.length?`<tr class="totalRow"><td colspan="4" style="text-align:right">TOTAL</td><td class="amt in">${money(t.inc)}</td><td></td></tr>`:''}</tbody></table>
     </div>
-    <div class="section"><div class="tableTitle"><div><div class="sectionTitle" style="margin:0">Expenses Summary</div></div><div class="total expenseTotal">Total Expense: ৳ ${money(t.exp)}</div></div>
-      <table class="expense"><thead><tr><th>#</th><th>Date</th><th>Category</th><th>Description</th><th>Payment Method</th><th style="text-align:right">Amount (৳)</th><th>Note</th></tr></thead><tbody>${expenseRows}${p.expenses.length?`<tr class="totalRow"><td colspan="5" style="text-align:right">TOTAL</td><td class="amt out">${money(t.exp)}</td><td></td></tr>`:''}</tbody></table>
+    <div class="section"><div class="tableTitle"><div><div class="sectionTitle" style="margin:0">Expenses Summary</div></div><div class="total expenseTotal">Total Expense: ${money(t.exp)}</div></div>
+      <table class="expense"><thead><tr><th>#</th><th>Date</th><th>Category</th><th>Description</th><th>Payment Method</th><th style="text-align:right">Amount</th><th>Note</th></tr></thead><tbody>${expenseRows}${p.expenses.length?`<tr class="totalRow"><td colspan="5" style="text-align:right">TOTAL</td><td class="amt out">${money(t.exp)}</td><td></td></tr>`:''}</tbody></table>
     </div>
-    <div class="net"><div><div class="netLabel">Net Balance</div><div class="netAmount">৳ ${money(t.bal)}</div></div><div class="equation">Total Received − Total Expense<br><strong>৳ ${money(t.inc)} − ৳ ${money(t.exp)} = ৳ ${money(t.bal)}</strong></div></div>
+    <div class="net"><div><div class="netLabel">Net Balance</div><div class="netAmount">${money(t.bal)}</div></div><div class="equation">Total Received − Total Expense<br><strong>${money(t.inc)} − ${money(t.exp)} = ${money(t.bal)}</strong></div></div>
     <div class="sign"><div><div class="signTitle">Prepared By</div><div class="signName">Shahadat Hossain</div><div class="signTitle">Assistant Manager</div></div><div><div class="line"></div></div><div class="gen"><div class="signTitle">Generated On</div><div class="signName" style="font-size:11px">${reportDate}</div><div class="signTitle" style="margin-top:3mm">PAIKARIGHOR — Project Accounts</div></div></div>
   </div><div class="footer"><div>PAIKARIGHOR · TELIPARA, CHANDONA CHOWRASTA, GAZIPUR</div><div class="pageNo">Page 1</div></div></div><script>window.onload=()=>setTimeout(()=>window.print(),250);<\/script></body></html>`;
   return htmlDoc;
