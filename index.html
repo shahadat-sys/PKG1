@@ -166,9 +166,55 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
 
 <div class="modal" id="viewModal"><div class="dialog"><div class="dialogHead"><h2 id="viewTitle">Project</h2><button class="btn" data-close="viewModal">Close</button></div><div id="viewBody"></div></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
 'use strict';
+const SUPABASE_URL='https://gqqwqhotlfhrunjqrdix.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_VKm4xUA13ZyGoWd0YSkDZg_b4i9jQJT';
+const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false}}):null;
+let cloudReady=false;
+let cloudLoading=false;
+
+function normalizeProject(p){return {id:String(p.id),name:p.name||'Untitled Project',manager:p.manager||'',status:p.status||'Active',received:Array.isArray(p.received)?p.received:[],expenses:Array.isArray(p.expenses)?p.expenses:[]};}
+function normalizeTx(x){return {id:String(x.id),amount:Number(x.amount||0),purpose:x.purpose||'',date:x.transaction_date||'',category:x.category||'',method:x.method||'Cash'};}
+
+async function cloudLoad(){
+  if(!sb||cloudLoading)return false;
+  cloudLoading=true;
+  try{
+    const [{data:ps,error:pe},{data:rs,error:re},{data:es,error:ee}]=await Promise.all([
+      sb.from('projects').select('id,name,manager,status,created_at,updated_at').order('created_at',{ascending:false}),
+      sb.from('project_received').select('id,project_id,amount,purpose,transaction_date,category,method,created_at').order('transaction_date',{ascending:false}),
+      sb.from('project_expenses').select('id,project_id,amount,purpose,transaction_date,category,method,created_at').order('transaction_date',{ascending:false})
+    ]);
+    if(pe||re||ee)throw(pe||re||ee);
+    const received=rs||[],expenses=es||[];
+    projects=(ps||[]).map(p=>{
+      const np=normalizeProject(p);
+      np.received=received.filter(x=>String(x.project_id)===String(p.id)).map(normalizeTx);
+      np.expenses=expenses.filter(x=>String(x.project_id)===String(p.id)).map(normalizeTx);
+      return np;
+    });
+    cloudReady=true;
+    localStorage.setItem(KEY,JSON.stringify(projects));
+    return true;
+  }catch(err){
+    cloudReady=false;
+    console.error('Supabase load failed:',err);
+    return false;
+  }finally{cloudLoading=false;}
+}
+
+async function cloudInsertProject(p){const {data,error}=await sb.from('projects').insert({name:p.name,manager:p.manager,status:p.status}).select('id').single();if(error)throw error;p.id=String(data.id);return data;}
+async function cloudUpdateProject(p){const {error}=await sb.from('projects').update({name:p.name,manager:p.manager,status:p.status}).eq('id',p.id);if(error)throw error;}
+async function cloudDeleteProject(id){const {error}=await sb.from('projects').delete().eq('id',id);if(error)throw error;}
+async function cloudInsertTx(projectId,type,item){const table=type==='received'?'project_received':'project_expenses';const {data,error}=await sb.from(table).insert({project_id:projectId,amount:Number(item.amount),purpose:item.purpose,transaction_date:item.date,category:item.category||null,method:item.method||'Cash'}).select('id').single();if(error)throw error;item.id=String(data.id);return data;}
+async function cloudUpdateTx(projectId,type,item){const table=type==='received'?'project_received':'project_expenses';const {error}=await sb.from(table).update({amount:Number(item.amount),purpose:item.purpose,transaction_date:item.date,category:item.category||null,method:item.method||'Cash'}).eq('id',item.id).eq('project_id',projectId);if(error)throw error;}
+async function cloudDeleteTx(projectId,type,id){const table=type==='received'?'project_received':'project_expenses';const {error}=await sb.from(table).delete().eq('id',id).eq('project_id',projectId);if(error)throw error;}
+
+function showCloudError(err){console.error(err);alert('Supabase save failed: '+(err?.message||err));}
+
 const KEY='PAIKARIGHOR_PROJECTS_V1';
 let projects=[]; let editingProjectId=null;
 const $=id=>document.getElementById(id);
@@ -176,6 +222,44 @@ const money=n=>''+Number(n||0).toLocaleString('en-BD',{minimumFractionDigits:2,m
 const today=()=>new Date().toISOString().slice(0,10);
 function load(){try{projects=JSON.parse(localStorage.getItem(KEY)||'[]'); if(!Array.isArray(projects))projects=[];}catch(e){projects=[]} projects=projects.map(p=>({id:String(p.id),name:p.name||'Untitled Project',manager:p.manager||'',status:p.status||'Active',received:Array.isArray(p.received)?p.received:[],expenses:Array.isArray(p.expenses)?p.expenses:[]}));}
 function save(){localStorage.setItem(KEY,JSON.stringify(projects)); render();}
+async function initCloud(){
+  load();
+  render();
+  if(!sb){console.warn('Supabase library unavailable; using local storage.');return;}
+
+  // Keep a copy of legacy local data before cloudLoad replaces the in-memory array.
+  const localBefore=JSON.parse(localStorage.getItem(KEY)||'[]');
+  const hadLocal=Array.isArray(localBefore)&&localBefore.length>0;
+  const ok=await cloudLoad();
+
+  if(ok){
+    // One-time migration: only when Supabase is genuinely empty.
+    if(projects.length===0 && hadLocal){
+      for(const lp of localBefore){
+        try{
+          const np={name:lp.name||'Untitled Project',manager:lp.manager||'',status:lp.status||'Active'};
+          await cloudInsertProject(np);
+          for(const x of (lp.received||[]))await cloudInsertTx(np.id,'received',x);
+          for(const x of (lp.expenses||[]))await cloudInsertTx(np.id,'expense',x);
+        }catch(e){showCloudError(e);break;}
+      }
+      await cloudLoad();
+    }
+    render();
+  }else{
+    alert('Supabase connection failed. Check the SQL/RLS policies. This device will keep local data until the connection is restored.');
+  }
+}
+
+// Refresh from Supabase whenever the page becomes visible again.
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible' && sb && !cloudLoading){
+    const ok=await cloudLoad();
+    if(ok)render();
+  }
+});
+
+
 function totals(p){let inc=p.received.reduce((a,x)=>a+Number(x.amount||0),0), exp=p.expenses.reduce((a,x)=>a+Number(x.amount||0),0);return {inc,exp,bal:inc-exp,count:p.received.length+p.expenses.length}}
 function allTx(){return projects.flatMap(p=>[...p.received.map(x=>({...x,type:'Income',projectId:p.id,project:p.name,amount:Number(x.amount||0)})),...p.expenses.map(x=>({...x,type:'Expense',projectId:p.id,project:p.name,amount:Number(x.amount||0)}))]).sort((a,b)=>(b.date||'').localeCompare(a.date||'' ) || (Number(b.id)||0)-(Number(a.id)||0));}
 function render(){
@@ -226,12 +310,13 @@ function openProject(id){
     </div>`;
   $('viewModal').classList.add('show');
 }
-function deleteSelectedExpenses(projectId){
+async function deleteSelectedExpenses(projectId){
   const p=projects.find(x=>x.id===String(projectId));
   if(!p)return;
   const ids=[...document.querySelectorAll('#viewBody .expenseSelect:checked')].map(el=>String(el.getAttribute('data-expense-id')));
   if(!ids.length){alert('Please select at least one expense to delete.');return;}
   if(!confirm(`Delete ${ids.length} selected expense${ids.length>1?'s':''}?`))return;
+  if(cloudReady){for(const id of ids) await cloudDeleteTx(projectId,'expense',id);}
   p.expenses=p.expenses.filter(x=>!ids.includes(String(x.id)));
   localStorage.setItem(KEY,JSON.stringify(projects));
   render();
@@ -244,13 +329,14 @@ function toggleExpenseMenu(btn,e){
   if(menu)menu.classList.add('show');
 }
 function closeExpenseMenus(){document.querySelectorAll('.expenseMenu.show').forEach(m=>m.classList.remove('show'));}
-function deleteExpense(projectId,txId){
+async function deleteExpense(projectId,txId){
   closeExpenseMenus();
   const p=projects.find(x=>x.id===String(projectId));
   if(!p)return;
   const item=p.expenses.find(x=>String(x.id)===String(txId));
   if(!item)return;
   if(!confirm('Delete this expense?'))return;
+  if(cloudReady) await cloudDeleteTx(projectId,'expense',txId);
   p.expenses=p.expenses.filter(x=>String(x.id)!==String(txId));
   localStorage.setItem(KEY,JSON.stringify(projects));
   render();
@@ -293,7 +379,7 @@ function editTx(projectId,type,txId){
   setTimeout(()=>{ try{$('txAmount').focus();}catch(e){} },50);
 }
 function editProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;editingProjectId=p.id;$('projectModalTitle').textContent='Edit Project';$('projectName').value=p.name;$('projectManager').value=p.manager;$('projectStatus').value=p.status;$('projectModal').classList.add('show');}
-function deleteProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;projects=projects.filter(x=>x.id!==String(id));save();$('viewModal').classList.remove('show');}
+async function deleteProject(id){const p=projects.find(x=>x.id===String(id));if(!p)return;try{if(cloudReady)await cloudDeleteProject(id);projects=projects.filter(x=>x.id!==String(id));save();$('viewModal').classList.remove('show');}catch(err){showCloudError(err);}}
 function openCreate(){editingProjectId=null;$('projectModalTitle').textContent='Create Project';$('projectName').value='';$('projectManager').value='';$('projectStatus').value='Active';$('projectModal').classList.add('show');}
 function buildProjectReportHtml(id){
   const p=projects.find(x=>x.id===String(id));
@@ -523,8 +609,8 @@ document.getElementById('dailyPrint').onclick=()=>printStatementCurrent();
 document.getElementById('dailyPdf').onclick=()=>printStatementCurrent();
 syncDailyDateLimit();statementRenderDaily();
 }else if(mode==='monthly'){const currentYear=Number(today().slice(0,4));const names=['January','February','March','April','May','June','July','August','September','October','November','December'];const years=[];for(let i=currentYear-5;i<=currentYear+2;i++)years.push(i);const defaultMonth=today().slice(5,7);tb.innerHTML=`<div style="width:100%"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px"><div class="field"><label>Year</label><select id="monthlyStatementYear">${years.map(y=>`<option value="${y}" ${y===currentYear?'selected':''}>${y}</option>`).join('')}</select></div><div class="field"><label>Month</label><select id="monthlyStatementMonthNum">${names.map((n,i)=>{const mm=String(i+1).padStart(2,'0');return `<option value="${mm}" ${mm===defaultMonth?'selected':''}>${n}</option>`}).join('')}</select></div><button class="btn primary" type="button" id="monthlyRun">Show Statement</button></div></div><div style="display:flex;gap:8px"><button class="btn" type="button" id="monthlyPrint">Print</button><button class="btn" type="button" id="monthlyPdf">PDF</button></div><input id="monthlyStatementMonth" type="hidden" value="${currentYear}-${defaultMonth}">`;document.getElementById('monthlyRun').onclick=()=>{const y=document.getElementById('monthlyStatementYear').value;const m=document.getElementById('monthlyStatementMonthNum').value;document.getElementById('monthlyStatementMonth').value=`${y}-${m}`;statementRenderMonthly();};document.getElementById('monthlyPrint').onclick=()=>printStatementCurrent();document.getElementById('monthlyPdf').onclick=()=>printStatementCurrent();statementRenderMonthly();}else{}document.getElementById('statementPanel').scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('statementMenu').classList.remove('show');}
-$('projectForm').addEventListener('submit',e=>{e.preventDefault();const name=$('projectName').value.trim();if(!name)return; if(editingProjectId){const p=projects.find(x=>x.id===editingProjectId);if(p){p.name=name;p.manager=$('projectManager').value.trim();p.status=$('projectStatus').value}}else{if(projects.some(x=>x.name.toLowerCase()===name.toLowerCase())){alert('A project with this name already exists.');return}projects.unshift({id:String(Date.now()),name,manager:$('projectManager').value.trim(),status:$('projectStatus').value,received:[],expenses:[]})}localStorage.setItem(KEY,JSON.stringify(projects));$('projectModal').classList.remove('show');render();});
-$('txForm').addEventListener('submit',e=>{
+$('projectForm').addEventListener('submit',async e=>{e.preventDefault();const name=$('projectName').value.trim();if(!name)return;try{if(editingProjectId){const p=projects.find(x=>x.id===editingProjectId);if(p){p.name=name;p.manager=$('projectManager').value.trim();p.status=$('projectStatus').value;if(cloudReady)await cloudUpdateProject(p);}}else{if(projects.some(x=>x.name.toLowerCase()===name.toLowerCase())){alert('A project with this name already exists.');return}const np={name,manager:$('projectManager').value.trim(),status:$('projectStatus').value,received:[],expenses:[]};if(cloudReady)await cloudInsertProject(np);else np.id=crypto.randomUUID();projects.unshift(np);}localStorage.setItem(KEY,JSON.stringify(projects));$('projectModal').classList.remove('show');render();}catch(err){showCloudError(err);}});
+$('txForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const id=$('txProjectId').value;
   const type=$('txType').value;
@@ -534,24 +620,23 @@ $('txForm').addEventListener('submit',e=>{
   if(!p||amount<=0)return;
   const list=type==='received'?p.received:p.expenses;
   const itemData={amount,purpose:$('txPurpose').value.trim(),date:$('txDate').value||today(),category:$('txCategory').value.trim(),method:$('txMethod').value};
-  if(editId){
-    const existing=list.find(x=>String(x.id)===String(editId));
-    if(!existing)return;
-    if(type==='expense'){
-      const availableForEdit=totals(p).bal+Number(existing.amount||0);
-      if(amount>availableForEdit){alert('Expense cannot be greater than available balance.');return;}
+  try{
+    if(editId){
+      const existing=list.find(x=>String(x.id)===String(editId));
+      if(!existing)return;
+      if(type==='expense'){const availableForEdit=totals(p).bal+Number(existing.amount||0);if(amount>availableForEdit){alert('Expense cannot be greater than available balance.');return;}}
+      Object.assign(existing,itemData);
+      if(cloudReady)await cloudUpdateTx(id,type,existing);
+    }else{
+      const t=totals(p);
+      if(type==='expense' && amount>t.bal){alert('Expense cannot be greater than available balance.');return}
+      const item={...itemData};
+      if(cloudReady)await cloudInsertTx(id,type,item);else item.id=crypto.randomUUID();
+      list.unshift(item);
     }
-    Object.assign(existing,itemData);
-  }else{
-    const t=totals(p);
-    if(type==='expense' && amount>t.bal){alert('Expense cannot be greater than available balance.');return}
-    list.unshift({id:Date.now(),...itemData});
-  }
-  localStorage.setItem(KEY,JSON.stringify(projects));
-  $('txModal').classList.remove('show');
-  $('txEditId').value='';
-  render();
-  if($('viewModal').classList.contains('show'))openProject(id);
+    localStorage.setItem(KEY,JSON.stringify(projects));
+    $('txModal').classList.remove('show');$('txEditId').value='';render();if($('viewModal').classList.contains('show'))openProject(id);
+  }catch(err){showCloudError(err);}
 });
 document.addEventListener('click',e=>{const id=e.target.getAttribute('data-close');if(id)$(id).classList.remove('show');if(!e.target.closest('.expenseMenuWrap'))closeExpenseMenus();});
 $('newProjectBtn2').onclick=openCreate;
@@ -573,7 +658,7 @@ function renderMonthlyReport(){const ys=document.getElementById('reportYear'),ms
 function printMonthlyReport(){const r=renderMonthlyReport();if(!r)return;const w=window.open('','_blank');if(!w){alert('Please allow pop-ups for print/PDF.');return}w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(r.title)}</title><style>body{font-family:Arial,sans-serif;padding:28px;color:#18201c}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px 10px;border-bottom:1px solid #ddd;text-align:left;font-size:12px}.in{color:#087443;font-weight:700}.out{color:#a03b2f;font-weight:700}h1{font-size:22px;margin:0 0 4px}.meta{color:#68756f;font-size:12px;margin-bottom:18px}</style></head><body>${r.html}<script>window.onload=()=>window.print();<\/script></body></html>`);w.document.close();}
 function openReports(){document.getElementById('dashboardPage').style.display='none';document.getElementById('statementPage').style.display='none';document.getElementById('reportsPage').style.display='block';document.querySelectorAll('.navBtn').forEach(b=>b.classList.remove('active'));document.getElementById('reportsNavBtn')?.classList.add('active');initReportSelectors();renderMonthlyReport();}
 window.PK={openProject,addTx,editTx,deleteExpense,toggleExpenseMenu,closeExpenseMenus,deleteSelectedExpenses,editProject,editProjectFromOpen,deleteProject,showDeleteConfirm,closeDeleteConfirm,confirmDeleteProject,printProject,downloadProject,buildProjectReportHtml};
-load();render();
+initCloud();
 })();
 </script>
 
