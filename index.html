@@ -124,9 +124,9 @@ body.locked .app{filter:blur(1px);pointer-events:none;user-select:none}
     <div class="brandCopy"><b>PAIKARIGHOR</b><span class="brandAddress">TELIPARA, CHANDONA CHOWRASTA, GAZIPUR</span></div>
   </div>
   <nav class="nav" aria-label="Primary navigation">
-    <button class="navBtn" data-target="dashboardAnchor">Dashboard</button>
+    <button class="navBtn active" data-target="dashboardAnchor">Dashboard</button>
     <div class="navWrap"><button class="navBtn" id="statementNavBtn" type="button">Statement</button><div class="statementMenu" id="statementMenu"><button type="button" data-statement="daily">Daily Statement</button><button type="button" data-statement="monthly">Monthly Statement</button></div></div>
-    <button class="navBtn active" id="accountsNavBtn" type="button">Accounts</button>
+    <button class="navBtn" id="accountsNavBtn" type="button">Accounts</button>
     <button class="navBtn" data-target="expensesAnchor">Expenses</button>
     <button class="navBtn" id="reportsNavBtn" type="button">Reports</button>
   </nav>
@@ -539,17 +539,14 @@ function closeDeleteConfirm(){
   overlay.setAttribute('aria-hidden','true');
   overlay.dataset.projectId='';
 }
-function confirmDeleteProject(){
+async function confirmDeleteProject(){
   const overlay=document.getElementById('deleteConfirmOverlay');
   const id=overlay?.dataset.projectId||'';
-  const p=projects.find(x=>x.id===String(id));
   closeDeleteConfirm();
-  if(!p)return;
-  projects=projects.filter(x=>x.id!==String(id));
-  save();
-  const view=document.getElementById('viewModal');
-  if(view)view.classList.remove('show');
-  render();
+  if(!id)return;
+  // Delegate to deleteProject() so the record is removed from Supabase too —
+  // deleting only from local state let it reappear on the next cloud refresh.
+  await deleteProject(id);
 }
 function openReportPreview(id){
   const htmlDoc=buildProjectReportHtml(id);
@@ -740,8 +737,8 @@ document.querySelectorAll('[data-statement]').forEach(b=>b.addEventListener('cli
 // Keep Sub Account ownership when a project is created from its dashboard.
 document.getElementById('projectForm')?.addEventListener('submit',()=>{if(!pendingSubProjectCreate)return;const owner=pendingSubProjectCreate;const before=new Set(projects.map(p=>String(p.id)));let tries=0;const finish=()=>{const newest=projects.find(p=>!before.has(String(p.id)))||projects[0];if(newest&&!projectAccountMap[String(newest.id)]){projectAccountMap[String(newest.id)]=owner;saveAccountMeta();pendingSubProjectCreate='';openSubDashboard(owner);return;}if(++tries<30)setTimeout(finish,150);else{pendingSubProjectCreate='';openSubDashboard(owner);}};setTimeout(finish,150);});
 window.PK.openSubDashboard=openSubDashboard;window.PK.assignProjects=openAssignProjects;window.PK.editSubAccount=editSubAccount;window.PK.toggleSubAccount=toggleSubAccount;window.PK.deleteSubAccount=deleteSubAccount;window.PK.showAccounts=showAccountsPage;
-// Start on Accounts tab as requested.
-showAccountsPage();
+// Sub Account option is disabled — start on the main Dashboard instead.
+showMotherDashboard();
 })();
 </script>
 
